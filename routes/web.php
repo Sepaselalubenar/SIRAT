@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RoomManagementController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\LecturerDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,9 +32,7 @@ Route::post('/admin/logout', [AdminLoginController::class, 'destroy'])->name('ad
 */
 
 Route::middleware(['auth', 'role:dosen'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('lecturer.dashboard');
-    });
+    Route::get('/dashboard', [LecturerDashboardController::class, 'index']);
 
     Route::get('/history', [HistoryController::class, 'index']);
 
