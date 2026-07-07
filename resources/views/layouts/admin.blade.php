@@ -18,10 +18,12 @@
             </div>
 
             <nav class="px-4 flex-1">
-                <a href="/admin" class="block px-5 py-4 rounded-xl hover:bg-blue-600 mb-3">
+                <a href="/admin" class="block px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 {{ request()->is('admin') ? 'bg-blue-800 font-semibold' : '' }}">
                     Dashboard
                 </a>
-                {{-- Kelola Ruangan & Approval Reservasi menyusul di fase berikutnya --}}
+                <a href="/admin/rooms" class="block px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 {{ request()->is('admin/rooms*') ? 'bg-blue-800 font-semibold' : '' }}">
+                    Kelola Ruangan
+                </a>
             </nav>
 
             <div class="p-5">
