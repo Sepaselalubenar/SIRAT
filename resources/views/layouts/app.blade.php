@@ -10,7 +10,7 @@
         // Prevent sidebar layout shift on reload
         (function() {
             const state = localStorage.getItem('sidebar-minimized');
-            if (state === 'true') {
+            if (state === 'true' && window.innerWidth >= 1024) {
                 document.documentElement.classList.add('sidebar-is-minimized');
             }
         })();
@@ -19,7 +19,7 @@
     <style>
         /* Sidebar custom transitions and classes */
         #sidebar {
-            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #sidebar.minimized {
             width: 5rem !important; /* w-20 */
@@ -50,9 +50,53 @@
             padding-left: 0 !important;
             padding-right: 0 !important;
         }
+
+        /* Mobile responsive sidebar rules */
+        @media (max-width: 1023px) {
+            #sidebar {
+                position: fixed !important;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 50 !important;
+                height: 100vh !important;
+                transform: translateX(-100%);
+            }
+            #sidebar.open {
+                transform: translateX(0) !important;
+                width: 18rem !important;
+            }
+            /* Never minimize to w-20 on mobile drawer */
+            #sidebar.minimized {
+                width: 18rem !important;
+            }
+            #sidebar.minimized .sidebar-text,
+            #sidebar.minimized .sidebar-logo-text,
+            #sidebar.minimized .sidebar-cs-card {
+                display: block !important;
+            }
+            #sidebar.minimized .sidebar-logo-short {
+                display: none !important;
+            }
+            #sidebar.minimized .sidebar-header {
+                flex-direction: row !important;
+                padding-left: 2rem !important;
+                padding-right: 2rem !important;
+                justify-content: space-between !important;
+            }
+            #sidebar.minimized .sidebar-nav-link,
+            #sidebar.minimized .sidebar-logout-btn {
+                justify-content: flex-start !important;
+                padding-left: 1.25rem !important;
+                padding-right: 1.25rem !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-sans antialiased">
+
+    <!-- Sidebar Backdrop for mobile -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
 
     <div class="flex min-h-screen">
 
@@ -122,12 +166,18 @@
         </aside>
 
         {{-- Content --}}
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col min-w-0">
 
             {{-- Topbar --}}
-            <header class="bg-white shadow-sm px-8 py-5 flex justify-between items-center">
-                <div>
-                    <h2 class="text-2xl font-bold">@yield('title', 'Dashboard')</h2>
+            <header class="bg-white shadow-sm px-4 lg:px-8 py-5 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <!-- Burger toggle for mobile -->
+                    <button type="button" id="mobile-sidebar-toggle" class="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-150 transition cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">@yield('title', 'Dashboard')</h2>
                 </div>
 
                 <div class="flex items-center gap-5">
@@ -137,17 +187,17 @@
                         <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
                             {{ Str::of(auth()->user()->name)->explode(' ')->map(fn($w) => strtoupper($w[0] ?? ''))->take(2)->implode('') }}
                         </div>
-                        <div>
-                            <p class="font-semibold">{{ auth()->user()->name }}</p>
-                            <p class="text-gray-500 text-sm">Dosen</p>
+                        <div class="hidden sm:block">
+                            <p class="font-semibold text-gray-800 text-sm leading-tight">{{ auth()->user()->name }}</p>
+                            <p class="text-gray-500 text-xs mt-0.5">Dosen</p>
                         </div>
                     </div>
                 </div>
             </header>
 
             {{-- Page content --}}
-            <main class="flex-1">
-                <section class="p-6">
+            <main class="flex-1 overflow-x-hidden">
+                <section class="p-4 lg:p-6">
                     @yield('content')
                 </section>
             </main>
@@ -161,24 +211,50 @@
         document.addEventListener("DOMContentLoaded", function() {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.getElementById('sidebar-toggle');
+            const mobileToggle = document.getElementById('mobile-sidebar-toggle');
+            const backdrop = document.getElementById('sidebar-backdrop');
             
             // Sync state with HTML header script check
-            if (document.documentElement.classList.contains('sidebar-is-minimized')) {
-                sidebar.classList.add('minimized');
+            if (window.innerWidth >= 1024) {
+                if (document.documentElement.classList.contains('sidebar-is-minimized')) {
+                    sidebar.classList.add('minimized');
+                }
             }
             
+            // Toggle sidebar minimized (on Desktop) or close (on Mobile)
             toggle.addEventListener('click', function() {
-                sidebar.classList.toggle('minimized');
-                const isMin = sidebar.classList.contains('minimized');
-                localStorage.setItem('sidebar-minimized', isMin);
-                
-                // Keep html tag in sync
-                if (isMin) {
-                    document.documentElement.classList.add('sidebar-is-minimized');
+                if (window.innerWidth >= 1024) {
+                    sidebar.classList.toggle('minimized');
+                    const isMin = sidebar.classList.contains('minimized');
+                    localStorage.setItem('sidebar-minimized', isMin);
+                    
+                    if (isMin) {
+                        document.documentElement.classList.add('sidebar-is-minimized');
+                    } else {
+                        document.documentElement.classList.remove('sidebar-is-minimized');
+                    }
                 } else {
-                    document.documentElement.classList.remove('sidebar-is-minimized');
+                    // Mobile close drawer
+                    sidebar.classList.remove('open');
+                    backdrop.classList.add('hidden');
                 }
             });
+
+            // Mobile Open Toggle
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', function() {
+                    sidebar.classList.add('open');
+                    backdrop.classList.remove('hidden');
+                });
+            }
+
+            // Click backdrop to close
+            if (backdrop) {
+                backdrop.addEventListener('click', function() {
+                    sidebar.classList.remove('open');
+                    backdrop.classList.add('hidden');
+                });
+            }
         });
     </script>
 </body>

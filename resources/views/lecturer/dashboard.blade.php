@@ -57,7 +57,7 @@
         </div>
 
         @forelse($recentReservations ?? [] as $reservation)
-            <div class="flex items-center justify-between border-b py-4 last:border-b-0">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b py-4 last:border-b-0 gap-4">
                 <div>
                     <h3 class="font-semibold">
                         {{ $reservation->room->nama ?? '-' }}

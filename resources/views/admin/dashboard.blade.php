@@ -32,7 +32,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         <div class="bg-white rounded-xl shadow p-6">
             <h3 class="text-gray-500">
@@ -72,7 +72,7 @@
         </div>
 
         @forelse($pendingList ?? [] as $reservation)
-            <div class="flex items-center justify-between border-b py-4 last:border-b-0">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b py-4 last:border-b-0 gap-4">
                 <div>
                     <h3 class="font-semibold">
                         {{ $reservation->room->nama ?? '-' }}
@@ -117,7 +117,7 @@
         </div>
 
         @forelse($approvedList ?? [] as $reservation)
-            <div class="flex items-center justify-between border-b py-4 last:border-b-0">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b py-4 last:border-b-0 gap-2">
                 <div>
                     <h3 class="font-semibold">
                         {{ $reservation->room->nama ?? '-' }}
