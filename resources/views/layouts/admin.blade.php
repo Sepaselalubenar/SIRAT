@@ -24,6 +24,9 @@
                 <a href="/admin/rooms" class="block px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 {{ request()->is('admin/rooms*') ? 'bg-blue-800 font-semibold' : '' }}">
                     Kelola Ruangan
                 </a>
+                <a href="/admin/reservations" class="block px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 {{ request()->is('admin/reservations*') ? 'bg-blue-800 font-semibold' : '' }}">
+                    Data Reservasi
+                </a>
             </nav>
 
             <div class="p-5">

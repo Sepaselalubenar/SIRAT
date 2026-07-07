@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\DosenLoginController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RoomManagementController;
+use App\Http\Controllers\Admin\ReservationManagementController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LecturerDashboardController;
 
@@ -62,4 +63,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Reservation approval
     Route::post('/admin/reservations/{id}/approve', [DashboardController::class, 'approve'])->name('admin.reservations.approve');
     Route::post('/admin/reservations/{id}/reject', [DashboardController::class, 'reject'])->name('admin.reservations.reject');
+
+    // Reservation management
+    Route::get('/admin/reservations', [ReservationManagementController::class, 'index'])->name('admin.reservations.index');
+    Route::delete('/admin/reservations/{id}', [ReservationManagementController::class, 'destroy'])->name('admin.reservations.destroy');
 });
