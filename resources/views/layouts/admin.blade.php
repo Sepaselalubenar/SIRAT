@@ -140,6 +140,14 @@
                     </svg>
                     <span class="sidebar-text">Data Reservasi</span>
                 </a>
+
+                <a href="/admin/calendar" class="sidebar-nav-link flex items-center gap-3 px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 {{ request()->is('admin/calendar*') ? 'bg-blue-800 font-semibold' : '' }}">
+                    <!-- Calendar Grid Icon -->
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span class="sidebar-text">Kalender Ruangan</span>
+                </a>
             </nav>
 
             <!-- Logout Section -->

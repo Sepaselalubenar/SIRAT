@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\RoomManagementController;
 use App\Http\Controllers\Admin\ReservationManagementController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LecturerDashboardController;
+use App\Http\Controllers\CalendarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,10 @@ Route::middleware(['auth', 'role:dosen'])->group(function () {
     Route::get('/reservation', [RoomController::class, 'index']);
     Route::get('/reservation/detail/{id}', [RoomController::class, 'show']);
     Route::post('/reservation/store', [ReservationController::class, 'store']);
+
+    // Calendar
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
 });
 
 /*
@@ -67,4 +72,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Reservation management
     Route::get('/admin/reservations', [ReservationManagementController::class, 'index'])->name('admin.reservations.index');
     Route::delete('/admin/reservations/{id}', [ReservationManagementController::class, 'destroy'])->name('admin.reservations.destroy');
+
+    // Calendar (admin can also access dosen calendar view)
+    Route::get('/admin/calendar', [CalendarController::class, 'index'])->name('admin.calendar.index');
+    Route::get('/admin/calendar/events', [CalendarController::class, 'events'])->name('admin.calendar.events');
 });
