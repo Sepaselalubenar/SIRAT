@@ -57,7 +57,7 @@
     <div class="flex min-h-screen">
 
         {{-- Sidebar --}}
-        <aside id="sidebar" class="w-72 bg-blue-700 text-white flex flex-col shrink-0">
+        <aside id="sidebar" class="w-72 bg-blue-700 text-white flex flex-col shrink-0 h-screen sticky top-0">
             <!-- Brand & Toggle Header -->
             <div class="sidebar-header p-8 flex items-center justify-between border-b border-blue-600/50">
                 <div>
@@ -74,7 +74,7 @@
             </div>
 
             <!-- Navigation Links -->
-            <nav class="px-4 py-4 flex-1">
+            <nav class="px-4 py-4 flex-1 overflow-y-auto">
                 <a href="/dashboard" class="sidebar-nav-link flex items-center gap-3 px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 {{ request()->is('dashboard') ? 'bg-blue-800 font-semibold' : '' }}">
                     <!-- Dashboard Icon -->
                     <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
