@@ -70,12 +70,16 @@ class RoomManagementController extends Controller
     {
         $room = Room::findOrFail($id);
 
-        // Delete all photo files from disk first
+        // Delete all photo files from disk first, and delete the photo records
         foreach ($room->photos as $photo) {
             if (Storage::disk('public')->exists($photo->path)) {
                 Storage::disk('public')->delete($photo->path);
             }
+            $photo->delete();
         }
+
+        // Delete all reservations associated with this room first to avoid foreign key constraints
+        $room->reservations()->delete();
 
         // Room photos will be cascade deleted on database because of cascadeOnDelete in migration
         $room->delete();
