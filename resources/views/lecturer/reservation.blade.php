@@ -233,9 +233,10 @@
                 @enderror
 
                 <button
-                    type="submit"
+                    type="button"
                     id="submit-btn"
-                    class="w-full bg-blue-600 text-white rounded-lg py-3 mt-4 hover:bg-blue-700"
+                    onclick="openConfirmModal()"
+                    class="w-full bg-blue-600 text-white rounded-lg py-3 mt-4 hover:bg-blue-700 transition font-semibold"
                 >
                     Kirim Reservasi
                 </button>
@@ -313,6 +314,87 @@
                 <div class="flex gap-2 mt-3 overflow-x-auto" id="modal-thumbnails"></div>
             </div>
 
+        </div>
+
+    </div>
+</div>
+
+{{-- ================= Modal Konfirmasi Reservasi ================= --}}
+<div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+
+        {{-- Header --}}
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-2xl p-6 text-white">
+            <div class="flex items-center gap-3 mb-1">
+                <div class="bg-white/20 rounded-full p-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold">Konfirmasi Reservasi</h3>
+            </div>
+            <p class="text-blue-100 text-sm">Periksa kembali detail reservasi Anda sebelum mengirim.</p>
+        </div>
+
+        {{-- Summary Content --}}
+        <div class="p-6 space-y-3">
+
+            {{-- Room name badge --}}
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p class="text-xs font-semibold text-blue-500 uppercase tracking-wider mb-0.5">Ruangan</p>
+                <p class="font-bold text-gray-800 text-base" id="confirm-room-name"></p>
+                <p class="text-sm text-gray-500" id="confirm-room-info"></p>
+            </div>
+
+            {{-- Details grid --}}
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-gray-50 rounded-xl p-3">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Tanggal</p>
+                    <p class="font-semibold text-gray-800 text-sm" id="confirm-tanggal"></p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-3">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Waktu</p>
+                    <p class="font-semibold text-gray-800 text-sm" id="confirm-waktu"></p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-3 col-span-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Tujuan</p>
+                    <p class="font-semibold text-gray-800 text-sm" id="confirm-tujuan"></p>
+                </div>
+            </div>
+
+            {{-- Notes (conditional) --}}
+            <div id="confirm-keterangan-row" class="bg-gray-50 rounded-xl p-3 hidden">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Catatan</p>
+                <p class="text-gray-700 italic text-sm" id="confirm-keterangan"></p>
+            </div>
+
+            {{-- Warning if needs approval --}}
+            <div id="confirm-approval-notice" class="hidden bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex items-start gap-2">
+                <svg class="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p class="text-yellow-700 text-xs">Ruangan ini memerlukan persetujuan admin sebelum dapat digunakan.</p>
+            </div>
+
+        </div>
+
+        {{-- Action Buttons --}}
+        <div class="p-6 pt-0 flex gap-3">
+            <button
+                type="button"
+                onclick="closeConfirmModal()"
+                class="flex-1 border border-gray-300 text-gray-700 rounded-xl py-3 font-semibold hover:bg-gray-50 transition cursor-pointer"
+            >
+                Periksa Lagi
+            </button>
+            <button
+                type="button"
+                id="confirm-submit-btn"
+                onclick="submitReservation()"
+                class="flex-1 bg-blue-600 text-white rounded-xl py-3 font-semibold hover:bg-blue-700 transition cursor-pointer"
+            >
+                Ya, Kirim
+            </button>
         </div>
 
     </div>
@@ -585,6 +667,84 @@
         }
     }
 })();
+
+// ====== Konfirmasi Modal ======
+function openConfirmModal() {
+    const roomId    = document.getElementById('input-room-id').value;
+    const tanggal   = document.getElementById('input-tanggal').value;
+    const jamMulai  = document.getElementById('input-jam-mulai').value;
+    const jamSelesai= document.getElementById('input-jam-selesai').value;
+    const tujuan    = document.getElementById('input-tujuan').value;
+    const keterangan= document.getElementById('input-keterangan').value.trim();
+    const roomName  = document.getElementById('ringkasan-nama-ruangan').textContent;
+    const roomInfo  = document.getElementById('ringkasan-lantai-ruangan').innerHTML;
+
+    // Basic validation before showing modal
+    if (!roomId) {
+        alert('Silakan pilih ruangan terlebih dahulu.');
+        return;
+    }
+    if (!tanggal) {
+        alert('Silakan pilih tanggal reservasi.');
+        return;
+    }
+    if (!jamMulai || !jamSelesai) {
+        alert('Silakan isi jam mulai dan jam selesai.');
+        return;
+    }
+    if (!tujuan) {
+        alert('Silakan pilih tujuan reservasi.');
+        return;
+    }
+
+    // Populate confirm modal
+    document.getElementById('confirm-room-name').textContent = roomName;
+    document.getElementById('confirm-room-info').innerHTML   = roomInfo;
+
+    const tgl = new Date(tanggal + 'T00:00:00');
+    const tglFormatted = tgl.toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+    document.getElementById('confirm-tanggal').textContent = tglFormatted;
+    document.getElementById('confirm-waktu').textContent   = jamMulai + ' – ' + jamSelesai;
+    document.getElementById('confirm-tujuan').textContent  = tujuan;
+
+    const ketRow = document.getElementById('confirm-keterangan-row');
+    if (keterangan) {
+        document.getElementById('confirm-keterangan').textContent = keterangan;
+        ketRow.classList.remove('hidden');
+    } else {
+        ketRow.classList.add('hidden');
+    }
+
+    // Approval notice
+    const needsApproval = document.getElementById('notice-h2') &&
+                          !document.getElementById('notice-h2').classList.contains('hidden');
+    document.getElementById('confirm-approval-notice').classList.toggle('hidden', !needsApproval);
+
+    // Show modal
+    const modal = document.getElementById('confirm-modal');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function submitReservation() {
+    const btn = document.getElementById('confirm-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Mengirim...';
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+    document.getElementById('reservation-form').submit();
+}
+
+// Close modal on backdrop click
+document.getElementById('confirm-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeConfirmModal();
+});
 </script>
 
 @endsection
