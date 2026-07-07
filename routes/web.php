@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ReservationManagementController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LecturerDashboardController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\Admin\UserManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,4 +77,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Calendar (admin can also access dosen calendar view)
     Route::get('/admin/calendar', [CalendarController::class, 'index'])->name('admin.calendar.index');
     Route::get('/admin/calendar/events', [CalendarController::class, 'events'])->name('admin.calendar.events');
+
+    // User management (dosen)
+    Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::post('/admin/users', [UserManagementController::class, 'store'])->name('admin.users.store');
+    Route::put('/admin/users/{user}', [UserManagementController::class, 'update'])->name('admin.users.update');
+    Route::delete('/admin/users/{user}', [UserManagementController::class, 'destroy'])->name('admin.users.destroy');
 });
