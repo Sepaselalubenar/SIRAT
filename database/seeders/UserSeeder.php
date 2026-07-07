@@ -1,0 +1,38 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
+class UserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        User::create([
+            'name' => 'Admin TULT',
+            'email' => 'admin@telkomuniversity.ac.id',
+            'password' => Hash::make('password'), // ganti sebelum production
+            'role' => 'admin',
+            'nip' => null,
+        ]);
+
+        // Dosen tidak pakai password, login cukup dengan NIP + email yang cocok.
+        User::create([
+            'name' => 'Dr. Ahmad Fauzi',
+            'email' => 'ahmad.fauzi@telkomuniversity.ac.id',
+            'password' => null,
+            'role' => 'dosen',
+            'nip' => '123456',
+        ]);
+
+        User::create([
+            'name' => 'Dr. Siti Nurhaliza',
+            'email' => 'siti.nurhaliza@telkomuniversity.ac.id',
+            'password' => null,
+            'role' => 'dosen',
+            'nip' => '654321',
+        ]);
+    }
+}
