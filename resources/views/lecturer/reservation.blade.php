@@ -16,7 +16,7 @@
 <div class="flex flex-col lg:flex-row gap-8 items-start">
 
     {{-- ================= Kolom kiri: tab lantai + daftar ruangan ================= --}}
-    <div class="flex-1 w-full">
+    <div class="flex-1 w-full min-w-0">
 
         <div class="flex gap-2 border-b mb-6 overflow-x-auto" id="floor-tabs">
             @foreach($roomsByLantai as $lantai => $roomsInLantai)
