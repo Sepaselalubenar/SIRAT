@@ -63,8 +63,8 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ $reservation->tanggal }},
-                        {{ $reservation->jam_mulai }} - {{ $reservation->jam_selesai }}
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        &middot; {{ $reservation->tujuan }}
                     </p>
                 </div>
 
@@ -75,6 +75,40 @@
         @empty
             <p class="text-gray-500">
                 Belum ada reservasi yang menunggu persetujuan.
+            </p>
+        @endforelse
+
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">
+                Ruangan yang Sedang / Akan Dipakai
+            </h2>
+        </div>
+
+        @forelse($approvedList ?? [] as $reservation)
+            <div class="flex items-center justify-between border-b py-4 last:border-b-0">
+                <div>
+                    <h3 class="font-semibold">
+                        {{ $reservation->room->nama ?? '-' }}
+                        <span class="text-gray-400 font-normal text-sm">&middot; Lantai {{ $reservation->room->lantai ?? '-' }}</span>
+                    </h3>
+                    <p class="text-gray-500 text-sm">
+                        {{ $reservation->user->name ?? '-' }} &middot;
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        &middot; {{ $reservation->tujuan }}
+                    </p>
+                </div>
+
+                <span class="text-green-600 font-semibold text-sm">
+                    Disetujui
+                </span>
+            </div>
+        @empty
+            <p class="text-gray-500">
+                Belum ada ruangan yang sedang dipakai.
             </p>
         @endforelse
 

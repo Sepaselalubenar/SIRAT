@@ -7,6 +7,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Auth\DosenLoginController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\HistoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,9 +34,7 @@ Route::middleware(['auth', 'role:dosen'])->group(function () {
         return view('lecturer.dashboard');
     });
 
-    Route::get('/history', function () {
-        return view('lecturer.history');
-    });
+    Route::get('/history', [HistoryController::class, 'index']);
 
     Route::get('/reservation', [RoomController::class, 'index']);
     Route::get('/reservation/detail/{id}', [RoomController::class, 'show']);

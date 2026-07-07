@@ -19,11 +19,19 @@ class DashboardController extends Controller
             ->orderBy('tanggal')
             ->get();
 
+        // Ruangan yang sedang/akan dipakai (reservasi approved, tanggal hari ini atau ke depan).
+        $approvedList = Reservation::with(['room', 'user'])
+            ->where('status', 'approved')
+            ->whereDate('tanggal', '>=', now()->toDateString())
+            ->orderBy('tanggal')
+            ->get();
+
         return view('admin.dashboard', compact(
             'totalRooms',
             'pendingReservations',
             'approvedReservations',
-            'pendingList'
+            'pendingList',
+            'approvedList'
         ));
     }
 }
