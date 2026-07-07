@@ -133,6 +133,13 @@
         return d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     }
 
+    function formatDate(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     function timeToPercent(timeStr) {
         const [h, m] = timeStr.split(':').map(Number);
         const minutes = (h - TIME_START) * 60 + m;
@@ -326,7 +333,7 @@
     });
 
     document.getElementById('today-btn').addEventListener('click', () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = formatDate(new Date());
         currentDate = today;
         dateFilter.value = today;
         fetchCalendar();
@@ -335,7 +342,7 @@
     document.getElementById('prev-day').addEventListener('click', () => {
         const d = new Date(currentDate + 'T00:00:00');
         d.setDate(d.getDate() - 1);
-        currentDate = d.toISOString().split('T')[0];
+        currentDate = formatDate(d);
         dateFilter.value = currentDate;
         fetchCalendar();
     });
@@ -343,7 +350,7 @@
     document.getElementById('next-day').addEventListener('click', () => {
         const d = new Date(currentDate + 'T00:00:00');
         d.setDate(d.getDate() + 1);
-        currentDate = d.toISOString().split('T')[0];
+        currentDate = formatDate(d);
         dateFilter.value = currentDate;
         fetchCalendar();
     });

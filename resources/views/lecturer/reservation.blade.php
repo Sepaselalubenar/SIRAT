@@ -47,11 +47,11 @@
                                 'maintenance' => 'Maintenance',
                                 default => ucfirst($room->status),
                             };
-                            $statusColor = match($room->status) {
-                                'tersedia' => 'text-green-600',
-                                'dipakai' => 'text-gray-500',
-                                'maintenance' => 'text-red-500',
-                                default => 'text-gray-500',
+                            $statusBadgeClass = match($room->status) {
+                                'tersedia' => 'bg-green-50 text-green-700 border-green-200',
+                                'dipakai' => 'bg-gray-100 text-gray-700 border-gray-200',
+                                'maintenance' => 'bg-red-50 text-red-700 border-red-200',
+                                default => 'bg-gray-50 text-gray-600 border-gray-200',
                             };
 
                             $bookedSlots = $room->reservations->map(fn($r) => [
@@ -72,7 +72,7 @@
                                 'butuh_approval' => $butuhApproval,
                                 'photos' => $photoUrls,
                                 'booked' => $bookedSlots,
-                            ];
+                             ];
                         @endphp
 
                         <div class="room-card bg-white rounded-xl shadow hover:shadow-xl transition"
@@ -86,17 +86,23 @@
                                 </div>
                             @endif
 
-                            <div class="p-5">
-                                <h2 class="font-bold text-lg">{{ $room->nama }}</h2>
-                                <p class="text-gray-500 text-sm mt-1">Lantai {{ $room->lantai }}</p>
-                                <p class="text-gray-500 text-sm">Kapasitas: {{ $room->kapasitas }} orang</p>
+                            <div class="p-5 flex flex-col justify-between h-[calc(100%-11rem)]">
+                                <div>
+                                    <h2 class="font-bold text-lg text-gray-800">{{ $room->nama }}</h2>
+                                    <p class="text-gray-500 text-sm mt-1">Lantai {{ $room->lantai }}</p>
+                                    <p class="text-gray-500 text-sm">Kapasitas: {{ $room->kapasitas }} orang</p>
 
-                                <p class="mt-2 text-sm font-semibold {{ $statusColor }}">
-                                    {{ $statusLabel }}
-                                    @if($butuhApproval)
-                                        <span class="ml-1 text-yellow-600 font-normal">&middot; Perlu Approval</span>
-                                    @endif
-                                </p>
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $statusBadgeClass }}">
+                                            {{ $statusLabel }}
+                                        </span>
+                                        @if($butuhApproval)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                                Perlu Approval
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
 
                                 <button
                                     type="button"
