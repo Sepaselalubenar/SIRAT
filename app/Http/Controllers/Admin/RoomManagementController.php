@@ -13,7 +13,8 @@ class RoomManagementController extends Controller
     public function index()
     {
         $rooms = Room::with('photos')->orderBy('id', 'desc')->get();
-        return view('admin.rooms.index', compact('rooms'));
+        $users = \App\Models\User::orderBy('name')->get();
+        return view('admin.rooms.index', compact('rooms', 'users'));
     }
 
     public function store(Request $request)
@@ -132,5 +133,53 @@ class RoomManagementController extends Controller
             'success' => true,
             'message' => 'Foto berhasil dihapus.'
         ]);
+    }
+
+    public function storeReservation(Request $request)
+    {
+        $validated = $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'user_id' => 'required|exists:users,id',
+            'tanggal' => 'required|date',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i',
+            'tujuan' => 'required|string|max:100',
+            'keterangan' => 'nullable|string|max:200',
+        ]);
+
+        $roomId = $validated['room_id'];
+        $tanggal = $validated['tanggal'];
+        $jamMulai = \Illuminate\Support\Carbon::parse($validated['jam_mulai']);
+        $jamSelesai = \Illuminate\Support\Carbon::parse($validated['jam_selesai']);
+
+        if ($jamSelesai->lte($jamMulai)) {
+            return redirect()->back()->withErrors(['jam_selesai' => 'Jam selesai harus setelah jam mulai.'])->withInput();
+        }
+
+        // Overlap check
+        $overlap = \App\Models\Reservation::where('room_id', $roomId)
+            ->where('tanggal', $tanggal)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where('jam_mulai', '<', $jamSelesai->format('H:i'))
+            ->where('jam_selesai', '>', $jamMulai->format('H:i'))
+            ->exists();
+
+        if ($overlap) {
+            return redirect()->back()->withErrors(['jam_mulai' => 'Ruangan ini sudah dipesan pada rentang jam tersebut oleh reservasi lain yang aktif.'])->withInput();
+        }
+
+        \App\Models\Reservation::create([
+            'room_id' => $roomId,
+            'user_id' => $validated['user_id'],
+            'tanggal' => $tanggal,
+            'jam_mulai' => $jamMulai->format('H:i'),
+            'jam_selesai' => $jamSelesai->format('H:i'),
+            'tujuan' => $validated['tujuan'],
+            'keterangan' => $validated['keterangan'] ?? null,
+            'status' => 'approved', // Admin booking is automatically approved
+            'approved_by' => auth()->id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Reservasi ruangan berhasil dibuat langsung.');
     }
 }

@@ -57,6 +57,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/admin/rooms/{id}', [RoomManagementController::class, 'destroy'])->name('admin.rooms.destroy');
     Route::post('/admin/rooms/{id}/photos', [RoomManagementController::class, 'uploadPhoto'])->name('admin.rooms.photos.upload');
     Route::delete('/admin/rooms/photos/{photoId}', [RoomManagementController::class, 'deletePhoto'])->name('admin.rooms.photos.delete');
+    Route::post('/admin/rooms/reserve', [RoomManagementController::class, 'storeReservation'])->name('admin.rooms.reserve');
 
     // Reservation approval
     Route::post('/admin/reservations/{id}/approve', [DashboardController::class, 'approve'])->name('admin.reservations.approve');
