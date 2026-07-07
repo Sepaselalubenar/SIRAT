@@ -34,4 +34,33 @@ class DashboardController extends Controller
             'approvedList'
         ));
     }
+
+    public function approve($id)
+    {
+        $reservation = Reservation::findOrFail($id);
+
+        $reservation->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Reservasi berhasil disetujui.');
+    }
+
+    public function reject(\Illuminate\Http\Request $request, $id)
+    {
+        $request->validate([
+            'alasan_penolakan' => 'required|string|max:255',
+        ]);
+
+        $reservation = Reservation::findOrFail($id);
+
+        $reservation->update([
+            'status' => 'rejected',
+            'alasan_penolakan' => $request->alasan_penolakan,
+            'approved_by' => auth()->id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Reservasi berhasil ditolak.');
+    }
 }
