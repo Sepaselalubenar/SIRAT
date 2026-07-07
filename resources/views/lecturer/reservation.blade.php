@@ -54,6 +54,12 @@
                                 default => 'text-gray-500',
                             };
 
+                            $bookedSlots = $room->reservations->map(fn($r) => [
+                                'tanggal' => \Illuminate\Support\Carbon::parse($r->tanggal)->toDateString(),
+                                'jam_mulai' => substr($r->jam_mulai, 0, 5),
+                                'jam_selesai' => substr($r->jam_selesai, 0, 5),
+                            ])->values();
+
                             $roomData = [
                                 'id' => $room->id,
                                 'nama' => $room->nama,
@@ -65,6 +71,7 @@
                                 'status' => $room->status,
                                 'butuh_approval' => $butuhApproval,
                                 'photos' => $photoUrls,
+                                'booked' => $bookedSlots,
                             ];
                         @endphp
 
@@ -130,17 +137,66 @@
                     <p class="text-gray-500 text-sm" id="ringkasan-lantai-ruangan"></p>
                 </div>
 
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                <input
-                    type="date"
-                    name="tanggal"
-                    id="input-tanggal"
-                    value="{{ old('tanggal') }}"
-                    class="w-full border rounded-lg p-3 mb-1"
-                >
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+
+                <div class="border rounded-lg p-3 mb-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <button type="button" id="cal-prev" class="px-2 py-1 rounded hover:bg-gray-100">&lsaquo;</button>
+                        <span id="cal-label" class="font-semibold text-sm"></span>
+                        <button type="button" id="cal-next" class="px-2 py-1 rounded hover:bg-gray-100">&rsaquo;</button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-1">
+                        <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-sm" id="cal-grid"></div>
+
+                    <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Ada reservasi</span>
+                    </div>
+
+                    <div id="cal-booked-info" class="hidden bg-yellow-50 text-yellow-700 text-xs rounded-lg p-2 mt-2"></div>
+                </div>
+
+                <input type="hidden" name="tanggal" id="input-tanggal" value="{{ old('tanggal') }}">
                 @error('tanggal')
                     <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
                 @enderror
+
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
+                        <input
+                            type="time"
+                            name="jam_mulai"
+                            id="input-jam-mulai"
+                            value="{{ old('jam_mulai') }}"
+                            min="07:00"
+                            max="18:30"
+                            class="w-full border rounded-lg p-3"
+                        >
+                        @error('jam_mulai')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
+                        <input
+                            type="time"
+                            name="jam_selesai"
+                            id="input-jam-selesai"
+                            value="{{ old('jam_selesai') }}"
+                            min="07:00"
+                            max="18:30"
+                            class="w-full border rounded-lg p-3"
+                        >
+                        @error('jam_selesai')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <p class="text-gray-400 text-xs mt-2">Jam operasional gedung: 07.00 - 18.30</p>
 
                 <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Tujuan Reservasi</label>
                 <select name="tujuan" id="input-tujuan" class="w-full border rounded-lg p-3 mb-1">
@@ -390,7 +446,96 @@
         renderPhoto();
     });
 
-    // ---------- Pilih ruangan (dari card ATAU dari modal) ----------
+    // ---------- Kalender custom ----------
+    const calGrid = document.getElementById('cal-grid');
+    const calLabel = document.getElementById('cal-label');
+    const calBookedInfo = document.getElementById('cal-booked-info');
+    const bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+    let calYear, calMonth, selectedDate = null;
+
+    function toDateStr(y, m, d) {
+        return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+
+    function minAllowedDate(room) {
+        const days = String(room.lantai) === lantaiApproval ? {{ $minHariApproval }} : 1;
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + days);
+        return d;
+    }
+
+    function renderCalendar(room) {
+        calGrid.innerHTML = '';
+        calLabel.textContent = bulanNama[calMonth] + ' ' + calYear;
+
+        const firstDay = new Date(calYear, calMonth, 1).getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        const minDate = minAllowedDate(room);
+        const bookedDates = (room.booked || []).map(b => b.tanggal);
+
+        for (let i = 0; i < firstDay; i++) {
+            calGrid.appendChild(document.createElement('span'));
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = toDateStr(calYear, calMonth, day);
+            const cellDate = new Date(calYear, calMonth, day);
+            const disabled = cellDate < minDate;
+            const isBooked = bookedDates.includes(dateStr);
+            const isSelected = dateStr === selectedDate;
+
+            const cell = document.createElement('button');
+            cell.type = 'button';
+            cell.textContent = day;
+            cell.className = 'py-2 rounded-lg relative ' +
+                (disabled
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : isSelected
+                        ? 'bg-blue-600 text-white font-semibold'
+                        : 'hover:bg-blue-50 text-gray-700');
+
+            if (isBooked && !disabled) {
+                const dot = document.createElement('span');
+                dot.className = 'absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ' + (isSelected ? 'bg-white' : 'bg-yellow-400');
+                cell.appendChild(dot);
+            }
+
+            if (!disabled) {
+                cell.addEventListener('click', () => {
+                    selectedDate = dateStr;
+                    document.getElementById('input-tanggal').value = dateStr;
+                    renderCalendar(room);
+
+                    const bookedToday = (room.booked || []).filter(b => b.tanggal === dateStr);
+                    if (bookedToday.length) {
+                        calBookedInfo.classList.remove('hidden');
+                        calBookedInfo.innerHTML = 'Jam yang sudah dipesan: ' +
+                            bookedToday.map(b => b.jam_mulai + '-' + b.jam_selesai).join(', ');
+                    } else {
+                        calBookedInfo.classList.add('hidden');
+                    }
+                });
+            }
+
+            calGrid.appendChild(cell);
+        }
+    }
+
+    document.getElementById('cal-prev').addEventListener('click', () => {
+        calMonth--;
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        renderCalendar(currentSelectedRoom);
+    });
+
+    document.getElementById('cal-next').addEventListener('click', () => {
+        calMonth++;
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        renderCalendar(currentSelectedRoom);
+    });
+
+    let currentSelectedRoom = null;
     function selectRoom(room) {
         document.getElementById('ringkasan-kosong').classList.add('hidden');
         document.getElementById('reservation-form').classList.remove('hidden');
@@ -399,15 +544,16 @@
         document.getElementById('ringkasan-nama-ruangan').textContent = room.nama;
         document.getElementById('ringkasan-lantai-ruangan').innerHTML = 'Lantai ' + room.lantai + ' &middot; Kapasitas ' + room.kapasitas + ' orang';
 
-        const tanggalInput = document.getElementById('input-tanggal');
         const notice = document.getElementById('notice-h2');
-        const today = new Date();
-        const minDays = String(room.lantai) === lantaiApproval ? {{ $minHariApproval }} : 1;
-        const minDate = new Date(today);
-        minDate.setDate(today.getDate() + minDays);
-        tanggalInput.min = minDate.toISOString().slice(0, 10);
-
         notice.classList.toggle('hidden', String(room.lantai) !== lantaiApproval);
+
+        currentSelectedRoom = room;
+        const today = new Date();
+        calYear = today.getFullYear();
+        calMonth = today.getMonth();
+        selectedDate = document.getElementById('input-tanggal').value || null;
+        calBookedInfo.classList.add('hidden');
+        renderCalendar(room);
 
         closeModal();
     }

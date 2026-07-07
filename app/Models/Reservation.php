@@ -13,6 +13,8 @@ class Reservation extends Model
         'room_id',
         'user_id',
         'tanggal',
+        'jam_mulai',
+        'jam_selesai',
         'tujuan',
         'keterangan',
         'status',

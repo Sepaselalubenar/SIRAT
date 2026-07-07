@@ -14,7 +14,11 @@ class RoomController extends Controller
 
     public function index()
     {
-        $rooms = Room::with('photos')
+        $rooms = Room::with(['photos', 'reservations' => function ($query) {
+            $query->whereIn('status', ['pending', 'approved'])
+                ->whereDate('tanggal', '>=', now()->toDateString())
+                ->select('id', 'room_id', 'tanggal', 'jam_mulai', 'jam_selesai');
+        }])
             ->orderBy('lantai')
             ->orderBy('nama')
             ->get();

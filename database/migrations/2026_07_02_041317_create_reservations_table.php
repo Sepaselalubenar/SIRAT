@@ -19,7 +19,10 @@ return new class extends Migration
 
         $table->foreignId('room_id')->constrained()->cascadeOnDelete();
 
-        $table->date('tanggal'); // reservasi full-day (08.00 - 17.00)
+        $table->date('tanggal');
+
+        $table->time('jam_mulai');
+        $table->time('jam_selesai');
 
         $table->string('tujuan'); // contoh: Sidang, Meeting, Ujian Sidang Tugas Akhir
 
