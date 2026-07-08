@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
+use App\Models\Room;
 
 class LecturerDashboardController extends Controller
 {
@@ -21,11 +22,15 @@ class LecturerDashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Get rooms for calendar filter
+        $rooms = Room::orderBy('lantai')->orderBy('nama')->get();
+
         return view('lecturer.dashboard', compact(
             'totalReservations',
             'pendingReservations',
             'approvedReservations',
-            'recentReservations'
+            'recentReservations',
+            'rooms'
         ));
     }
 }

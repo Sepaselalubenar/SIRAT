@@ -32,15 +32,106 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50 text-gray-500 uppercase text-xs font-semibold border-b border-gray-150">
-                        <th class="py-4 px-6">No</th>
-                        <th class="py-4 px-6">Ruangan</th>
-                        <th class="py-4 px-6">Pemesan</th>
-                        <th class="py-4 px-6">Diajukan Pada</th>
-                        <th class="py-4 px-6">Tanggal</th>
-                        <th class="py-4 px-6">Waktu</th>
-                        <th class="py-4 px-6">Tujuan</th>
+                        <th class="py-4 px-6 w-16">No</th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'room', 'order' => ($sortBy === 'room' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Ruangan
+                                @if($sortBy === 'room')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'user', 'order' => ($sortBy === 'user' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Pemesan
+                                @if($sortBy === 'user')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'created_at', 'order' => ($sortBy === 'created_at' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Diajukan Pada
+                                @if($sortBy === 'created_at')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'tanggal', 'order' => ($sortBy === 'tanggal' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Tanggal
+                                @if($sortBy === 'tanggal')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'waktu', 'order' => ($sortBy === 'waktu' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Waktu
+                                @if($sortBy === 'waktu')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'tujuan', 'order' => ($sortBy === 'tujuan' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Tujuan
+                                @if($sortBy === 'tujuan')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
                         <th class="py-4 px-6">Keterangan</th>
-                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6">
+                            <a href="{{ route('admin.reservations.index', ['sort_by' => 'status', 'order' => ($sortBy === 'status' && $order === 'asc') ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1.5 hover:text-gray-900 group transition-colors duration-150">
+                                Status
+                                @if($sortBy === 'status')
+                                    @if($order === 'asc')
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                @else
+                                    <svg class="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+                                @endif
+                            </a>
+                        </th>
                         <th class="py-4 px-6 text-right">Aksi</th>
                     </tr>
                 </thead>
