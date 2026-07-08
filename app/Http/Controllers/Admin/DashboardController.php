@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Room;
+use App\Mail\ReservationStatusMail;
 
 class DashboardController extends Controller
 {
@@ -44,6 +45,14 @@ class DashboardController extends Controller
             'approved_by' => auth()->id(),
         ]);
 
+        // Kirim email notifikasi ke dosen
+        $reservation->load(['room', 'user']);
+        try {
+            (new ReservationStatusMail($reservation))->sendViaApi();
+        } catch (\Throwable $e) {
+            logger()->error('Gagal mengirim email status disetujui #' . $reservation->id . ': ' . $e->getMessage());
+        }
+
         return redirect()->back()->with('success', 'Reservasi berhasil disetujui.');
     }
 
@@ -60,6 +69,14 @@ class DashboardController extends Controller
             'alasan_penolakan' => $request->alasan_penolakan,
             'approved_by' => auth()->id(),
         ]);
+
+        // Kirim email notifikasi ke dosen
+        $reservation->load(['room', 'user']);
+        try {
+            (new ReservationStatusMail($reservation))->sendViaApi();
+        } catch (\Throwable $e) {
+            logger()->error('Gagal mengirim email status ditolak #' . $reservation->id . ': ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Reservasi berhasil ditolak.');
     }

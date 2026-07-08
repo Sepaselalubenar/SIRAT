@@ -9,29 +9,20 @@ use Mailtrap\MailtrapClient;
 use Mailtrap\Mime\MailtrapEmail;
 use Symfony\Component\Mime\Address;
 
-class ReservationSuccessMail
+class ReservationStatusMail
 {
     use Queueable, SerializesModels;
 
     public function __construct(public Reservation $reservation) {}
 
     /**
-     * Kirim email notifikasi via Mailtrap API (HTTP, bukan SMTP).
-     * Digunakan karena port SMTP diblokir di lingkungan lokal.
+     * Kirim email notifikasi status reservasi via Mailtrap API (HTTP, bukan SMTP).
      */
     public function sendViaApi(): void
     {
         $apiKey     = config('mail.mailtrap_api_key');
         $inboxId    = config('mail.mailtrap_inbox_id');
         $isSandbox  = (bool) config('mail.mailtrap_sandbox', true);
-
-        logger()->info('[PINTU Mail] Mulai kirim email', [
-            'reservation_id' => $this->reservation->id,
-            'to_email'       => $this->reservation->user->email,
-            'api_key_set'    => !empty($apiKey),
-            'inbox_id'       => $inboxId,
-            'is_sandbox'     => $isSandbox,
-        ]);
 
         $emailsApi = MailtrapClient::initSendingEmails(
             apiKey: $apiKey,
@@ -41,31 +32,34 @@ class ReservationSuccessMail
 
         $reservation = $this->reservation;
         $statusLabel = $reservation->status === 'approved'
-            ? 'Disetujui Otomatis ✅'
-            : 'Menunggu Persetujuan Admin ⏳';
+            ? 'Disetujui'
+            : 'Ditolak';
 
         $tanggal = \Illuminate\Support\Carbon::parse($reservation->tanggal)
             ->locale('id')
             ->isoFormat('dddd, D MMMM YYYY');
 
-        $htmlBody = view('emails.reservation-success', compact('reservation'))->render();
+        $htmlBody = view('emails.reservation-status', compact('reservation'))->render();
 
         $textBody = implode("\n", [
             "Halo, {$reservation->user->name}!",
             "",
-            "Reservasi ruangan Anda telah berhasil diajukan.",
+            "Status pengajuan reservasi ruangan Anda telah diperbarui oleh Admin.",
             "",
-            "Ruangan   : {$reservation->room->nama} (Lantai {$reservation->room->lantai})",
+            "Ruangan   : {$reservation->room->nama}",
             "Tanggal   : {$tanggal}",
             "Waktu     : {$reservation->jam_mulai} – {$reservation->jam_selesai} WIB",
             "Tujuan    : {$reservation->tujuan}",
             "Status    : {$statusLabel}",
-            "",
-            "Terima kasih,",
-            "Tim PINTU TULT",
         ]);
 
-        $subject = "[PINTU] Reservasi {$reservation->room->nama} – {$statusLabel}";
+        if ($reservation->status === 'rejected' && $reservation->alasan_penolakan) {
+            $textBody .= "\nAlasan Penolakan: \"{$reservation->alasan_penolakan}\"";
+        }
+
+        $textBody .= "\n\nTerima kasih,\nTim PINTU TULT";
+
+        $subject = "[PINTU] Status Reservasi {$reservation->room->nama} – {$statusLabel}";
 
         $email = (new MailtrapEmail())
             ->from(new Address(
@@ -78,9 +72,5 @@ class ReservationSuccessMail
             ->text($textBody);
 
         $emailsApi->send($email);
-
-        logger()->info('[PINTU Mail] Email berhasil dikirim via API', [
-            'reservation_id' => $this->reservation->id,
-        ]);
     }
 }

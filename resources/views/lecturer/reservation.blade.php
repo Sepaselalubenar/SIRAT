@@ -13,10 +13,10 @@
 <h1 class="text-3xl font-bold text-gray-800">Pilih Ruangan</h1>
 <p class="text-gray-500 mt-1 mb-6">Pilih lokasi ruangan yang ingin Anda reservasi</p>
 
-<div class="flex flex-col lg:flex-row gap-8 items-start">
+<div class="w-full">
 
     {{-- ================= Kolom kiri: tab lantai + daftar ruangan ================= --}}
-    <div class="flex-1 w-full min-w-0">
+    <div class="w-full">
 
         <div class="flex gap-2 border-b mb-6 overflow-x-auto" id="floor-tabs">
             @foreach($roomsByLantai as $lantai => $roomsInLantai)
@@ -122,135 +122,6 @@
 
     </div>
 
-    {{-- ================= Kolom kanan: Ringkasan Reservasi ================= --}}
-    <aside class="w-full lg:w-96 shrink-0">
-        <div class="bg-white rounded-xl shadow p-6 lg:sticky lg:top-6">
-
-            <h3 class="text-xl font-bold text-gray-800">Ringkasan Reservasi</h3>
-
-            <div id="ringkasan-kosong" class="text-center text-gray-400 py-10">
-                <p class="text-4xl mb-2">&#128197;</p>
-                <p>Belum ada ruangan dipilih</p>
-            </div>
-
-            <form method="POST" action="/reservation/store" id="reservation-form" class="hidden">
-                @csrf
-
-                <input type="hidden" name="room_id" id="input-room-id">
-
-                <div id="ringkasan-terisi" class="bg-blue-50 rounded-xl p-4 mb-4">
-                    <p class="font-semibold" id="ringkasan-nama-ruangan"></p>
-                    <p class="text-gray-500 text-sm" id="ringkasan-lantai-ruangan"></p>
-                </div>
-
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
-
-                <div class="border rounded-lg p-3 mb-1">
-                    <div class="flex items-center justify-between mb-2">
-                        <button type="button" id="cal-prev" class="px-2 py-1 rounded hover:bg-gray-100">&lsaquo;</button>
-                        <span id="cal-label" class="font-semibold text-sm"></span>
-                        <button type="button" id="cal-next" class="px-2 py-1 rounded hover:bg-gray-100">&rsaquo;</button>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-1">
-                        <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1 text-center text-sm" id="cal-grid"></div>
-
-                    <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Ada reservasi</span>
-                    </div>
-
-                    <div id="cal-booked-info" class="hidden bg-yellow-50 text-yellow-700 text-xs rounded-lg p-2 mt-2"></div>
-                </div>
-
-                <input type="hidden" name="tanggal" id="input-tanggal" value="{{ old('tanggal') }}">
-                @error('tanggal')
-                    <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
-                @enderror
-
-                <div class="grid grid-cols-2 gap-3 mt-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
-                        <input
-                            type="time"
-                            name="jam_mulai"
-                            id="input-jam-mulai"
-                            value="{{ old('jam_mulai') }}"
-                            min="07:00"
-                            max="18:30"
-                            class="w-full border rounded-lg p-3"
-                        >
-                        @error('jam_mulai')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
-                        <input
-                            type="time"
-                            name="jam_selesai"
-                            id="input-jam-selesai"
-                            value="{{ old('jam_selesai') }}"
-                            min="07:00"
-                            max="18:30"
-                            class="w-full border rounded-lg p-3"
-                        >
-                        @error('jam_selesai')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <p class="text-gray-400 text-xs mt-2">Jam operasional gedung: 07.00 - 18.30</p>
-
-                <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Tujuan Reservasi</label>
-                <select name="tujuan" id="input-tujuan" class="w-full border rounded-lg p-3 mb-1">
-                    <option value="">Pilih tujuan reservasi</option>
-                    <option value="Sidang" @selected(old('tujuan') === 'Sidang')>Sidang</option>
-                    <option value="Meeting" @selected(old('tujuan') === 'Meeting')>Meeting</option>
-                    <option value="Ujian Sidang Tugas Akhir" @selected(old('tujuan') === 'Ujian Sidang Tugas Akhir')>Ujian Sidang Tugas Akhir</option>
-                    <option value="Seminar" @selected(old('tujuan') === 'Seminar')>Seminar</option>
-                    <option value="Lainnya" @selected(old('tujuan') === 'Lainnya')>Lainnya</option>
-                </select>
-                @error('tujuan')
-                    <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
-                @enderror
-
-                <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan (Opsional)</label>
-                <textarea
-                    name="keterangan"
-                    id="input-keterangan"
-                    maxlength="200"
-                    rows="3"
-                    placeholder="Tambahkan keterangan jika diperlukan"
-                    class="w-full border rounded-lg p-3"
-                >{{ old('keterangan') }}</textarea>
-                @error('keterangan')
-                    <p class="text-red-500 text-xs">{{ $message }}</p>
-                @enderror
-
-                <div id="notice-h2" class="hidden bg-blue-50 text-blue-700 text-sm rounded-lg p-3 mt-4">
-                    Untuk ruangan lantai {{ $lantaiApproval }}, minimal reservasi H+{{ $minHariApproval }}.
-                </div>
-
-                @error('room_id')
-                    <p class="text-red-500 text-xs mt-3">{{ $message }}</p>
-                @enderror
-
-                <button
-                    type="button"
-                    id="submit-btn"
-                    onclick="openConfirmModal()"
-                    class="w-full bg-blue-600 text-white rounded-lg py-3 mt-4 hover:bg-blue-700 transition font-semibold"
-                >
-                    Kirim Reservasi
-                </button>
-            </form>
-
-        </div>
-    </aside>
-
 </div>
 
 {{-- ================= Modal Detail Ruangan ================= --}}
@@ -258,7 +129,7 @@
     <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
 
         <div class="flex justify-between items-center p-6 border-b">
-            <h3 class="text-xl font-bold">Detail Ruangan</h3>
+            <h3 class="text-xl font-bold" id="modal-title">Detail Ruangan</h3>
             <button type="button" id="modal-close" class="text-2xl text-gray-400 hover:text-gray-700">&times;</button>
         </div>
 
@@ -266,35 +137,160 @@
 
             {{-- Info --}}
             <div>
-                <h4 class="text-lg font-bold" id="modal-nama"></h4>
-                <span class="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-1 rounded mt-1" id="modal-lantai-badge"></span>
-                <p class="text-gray-500 mt-2" id="modal-kapasitas"></p>
+                {{-- State 1: Detail Ruangan --}}
+                <div id="modal-content-details">
+                    <h4 class="text-lg font-bold" id="modal-nama"></h4>
+                    <span class="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-1 rounded mt-1" id="modal-lantai-badge"></span>
+                    <p class="text-gray-500 mt-2" id="modal-kapasitas"></p>
 
-                <div class="border-t mt-4 pt-4">
-                    <p class="font-semibold mb-2">Informasi Ruangan</p>
-                    <div class="flex justify-between text-sm py-1">
-                        <span class="text-gray-500">Jenis Ruangan</span>
-                        <span id="modal-jenis"></span>
+                    <div class="border-t mt-4 pt-4">
+                        <p class="font-semibold mb-2">Informasi Ruangan</p>
+                        <div class="flex justify-between text-sm py-1">
+                            <span class="text-gray-500">Jenis Ruangan</span>
+                            <span id="modal-jenis"></span>
+                        </div>
+                        <div class="flex justify-between text-sm py-1">
+                            <span class="text-gray-500">Lokasi</span>
+                            <span id="modal-lokasi"></span>
+                        </div>
                     </div>
-                    <div class="flex justify-between text-sm py-1">
-                        <span class="text-gray-500">Lokasi</span>
-                        <span id="modal-lokasi"></span>
+
+                    <div class="border-t mt-4 pt-4">
+                        <p class="font-semibold mb-2">Fasilitas</p>
+                        <ul id="modal-fasilitas" class="text-sm space-y-1"></ul>
                     </div>
+
+                    <div class="border-t mt-4 pt-4">
+                        <p class="font-semibold mb-2">Keterangan</p>
+                        <p class="text-sm text-gray-500" id="modal-deskripsi"></p>
+                    </div>
+
+                    <button type="button" id="modal-pilih-ruangan" class="w-full bg-blue-600 text-white rounded-lg py-3 mt-6 hover:bg-blue-700">
+                        Pilih Ruangan Ini
+                    </button>
                 </div>
 
-                <div class="border-t mt-4 pt-4">
-                    <p class="font-semibold mb-2">Fasilitas</p>
-                    <ul id="modal-fasilitas" class="text-sm space-y-1"></ul>
-                </div>
+                {{-- State 2: Form Reservasi --}}
+                <div id="modal-content-form" class="hidden">
+                    <button type="button" id="modal-back-to-details" class="mb-4 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-semibold transition">
+                        &larr; Kembali ke Detail Ruangan
+                    </button>
 
-                <div class="border-t mt-4 pt-4">
-                    <p class="font-semibold mb-2">Keterangan</p>
-                    <p class="text-sm text-gray-500" id="modal-deskripsi"></p>
-                </div>
+                    <form method="POST" action="/reservation/store" id="reservation-form">
+                        @csrf
 
-                <button type="button" id="modal-pilih-ruangan" class="w-full bg-blue-600 text-white rounded-lg py-3 mt-6 hover:bg-blue-700">
-                    Pilih Ruangan Ini
-                </button>
+                        <input type="hidden" name="room_id" id="input-room-id">
+
+                        <div id="ringkasan-terisi" class="bg-blue-50 rounded-xl p-4 mb-4">
+                            <p class="font-semibold" id="ringkasan-nama-ruangan"></p>
+                            <p class="text-gray-500 text-sm" id="ringkasan-lantai-ruangan"></p>
+                        </div>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+
+                        <div class="border rounded-lg p-3 mb-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <button type="button" id="cal-prev" class="px-2 py-1 rounded hover:bg-gray-100">&lsaquo;</button>
+                                <span id="cal-label" class="font-semibold text-sm"></span>
+                                <button type="button" id="cal-next" class="px-2 py-1 rounded hover:bg-gray-100">&rsaquo;</button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-1">
+                                <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm" id="cal-grid"></div>
+
+                            <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Ada reservasi</span>
+                            </div>
+
+                            <div id="cal-booked-info" class="hidden bg-yellow-50 text-yellow-700 text-xs rounded-lg p-2 mt-2"></div>
+                        </div>
+
+                        <input type="hidden" name="tanggal" id="input-tanggal" value="{{ old('tanggal') }}">
+                        @error('tanggal')
+                            <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
+                        @enderror
+
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
+                                <input
+                                    type="time"
+                                    name="jam_mulai"
+                                    id="input-jam-mulai"
+                                    value="{{ old('jam_mulai') }}"
+                                    min="07:00"
+                                    max="18:30"
+                                    class="w-full border rounded-lg p-3"
+                                >
+                                @error('jam_mulai')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
+                                <input
+                                    type="time"
+                                    name="jam_selesai"
+                                    id="input-jam-selesai"
+                                    value="{{ old('jam_selesai') }}"
+                                    min="07:00"
+                                    max="18:30"
+                                    class="w-full border rounded-lg p-3"
+                                >
+                                @error('jam_selesai')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <p class="text-gray-400 text-xs mt-2">Jam operasional gedung: 07.00 - 18.30</p>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Tujuan Reservasi</label>
+                        <select name="tujuan" id="input-tujuan" class="w-full border rounded-lg p-3 mb-1">
+                            <option value="">Pilih tujuan reservasi</option>
+                            <option value="Sidang" @selected(old('tujuan') === 'Sidang')>Sidang</option>
+                            <option value="Meeting" @selected(old('tujuan') === 'Meeting')>Meeting</option>
+                            <option value="Ujian Sidang Tugas Akhir" @selected(old('tujuan') === 'Ujian Sidang Tugas Akhir')>Ujian Sidang Tugas Akhir</option>
+                            <option value="Seminar" @selected(old('tujuan') === 'Seminar')>Seminar</option>
+                            <option value="Lainnya" @selected(old('tujuan') === 'Lainnya')>Lainnya</option>
+                        </select>
+                        @error('tujuan')
+                            <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
+                        @enderror
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan (Opsional)</label>
+                        <textarea
+                            name="keterangan"
+                            id="input-keterangan"
+                            maxlength="200"
+                            rows="3"
+                            placeholder="Tambahkan keterangan jika diperlukan"
+                            class="w-full border rounded-lg p-3"
+                        >{{ old('keterangan') }}</textarea>
+                        @error('keterangan')
+                            <p class="text-red-500 text-xs">{{ $message }}</p>
+                        @enderror
+
+                        <div id="notice-h2" class="hidden bg-blue-50 text-blue-700 text-sm rounded-lg p-3 mt-4">
+                            Untuk ruangan lantai {{ $lantaiApproval }}, minimal reservasi H+{{ $minHariApproval }}.
+                        </div>
+
+                        @error('room_id')
+                            <p class="text-red-500 text-xs mt-3">{{ $message }}</p>
+                        @enderror
+
+                        <button
+                            type="button"
+                            id="submit-btn"
+                            onclick="openConfirmModal()"
+                            class="w-full bg-blue-600 text-white rounded-lg py-3 mt-4 hover:bg-blue-700 transition font-semibold"
+                        >
+                            Kirim Reservasi
+                        </button>
+                    </form>
+                </div>
             </div>
 
             {{-- Galeri foto + zoom --}}
@@ -466,7 +462,7 @@
         });
     }
 
-    function openModal(room) {
+    function setupRoomDetails(room) {
         currentRoom = room;
         currentPhotoIndex = 0;
         currentZoom = 100;
@@ -495,10 +491,24 @@
         pilihBtn.classList.toggle('hover:bg-blue-700', room.status === 'tersedia');
 
         renderPhoto();
+    }
+
+    function openModal(room) {
+        setupRoomDetails(room);
+
+        document.getElementById('modal-title').textContent = 'Detail Ruangan';
+        document.getElementById('modal-content-details').classList.remove('hidden');
+        document.getElementById('modal-content-form').classList.add('hidden');
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
+
+    document.getElementById('modal-back-to-details').addEventListener('click', () => {
+        document.getElementById('modal-title').textContent = 'Detail Ruangan';
+        document.getElementById('modal-content-details').classList.remove('hidden');
+        document.getElementById('modal-content-form').classList.add('hidden');
+    });
 
     function closeModal() {
         modal.classList.add('hidden');
@@ -625,8 +635,7 @@
 
     let currentSelectedRoom = null;
     function selectRoom(room) {
-        document.getElementById('ringkasan-kosong').classList.add('hidden');
-        document.getElementById('reservation-form').classList.remove('hidden');
+        setupRoomDetails(room);
 
         document.getElementById('input-room-id').value = room.id;
         document.getElementById('ringkasan-nama-ruangan').textContent = room.nama;
@@ -643,7 +652,14 @@
         calBookedInfo.classList.add('hidden');
         renderCalendar(room);
 
-        closeModal();
+        // Transition the modal content
+        document.getElementById('modal-title').textContent = 'Reservasi Ruangan';
+        document.getElementById('modal-content-details').classList.add('hidden');
+        document.getElementById('modal-content-form').classList.remove('hidden');
+
+        // Open modal
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
 
     document.querySelectorAll('.btn-pilih-ruangan').forEach(btn => {

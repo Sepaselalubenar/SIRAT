@@ -35,6 +35,7 @@
                         <th class="py-4 px-6">No</th>
                         <th class="py-4 px-6">Ruangan</th>
                         <th class="py-4 px-6">Pemesan</th>
+                        <th class="py-4 px-6">Diajukan Pada</th>
                         <th class="py-4 px-6">Tanggal</th>
                         <th class="py-4 px-6">Waktu</th>
                         <th class="py-4 px-6">Tujuan</th>
@@ -54,6 +55,9 @@
                             <td class="py-4 px-6">
                                 <span class="font-medium text-gray-900">{{ $reservation->user->name ?? '-' }}</span>
                                 <span class="block text-xs text-gray-400">{{ $reservation->user->nip ? 'NIP: ' . $reservation->user->nip : 'Admin' }}</span>
+                            </td>
+                            <td class="py-4 px-6 text-gray-500">
+                                {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB
                             </td>
                             <td class="py-4 px-6">
                                 {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
@@ -103,7 +107,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-12 px-6 text-center text-gray-400 italic">
+                            <td colspan="10" class="py-12 px-6 text-center text-gray-400 italic">
                                 Belum ada data reservasi ruangan.
                             </td>
                         </tr>

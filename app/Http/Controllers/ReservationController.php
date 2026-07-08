@@ -68,7 +68,7 @@ class ReservationController extends Controller
 
         try {
             (new ReservationSuccessMail($reservation))->sendViaApi();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Tangkap error API agar reservasi tetap tersimpan walau email gagal terkirim.
             logger()->error('Gagal mengirim email notifikasi reservasi #' . $reservation->id . ': ' . $e->getMessage());
         }

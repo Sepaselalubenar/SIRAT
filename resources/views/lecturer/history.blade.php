@@ -29,7 +29,8 @@
         <table class="w-full text-left">
             <thead>
                 <tr class="text-gray-500 text-sm border-b">
-                    <th class="py-3">Tanggal</th>
+                    <th class="py-3">Waktu Pemakaian</th>
+                    <th class="py-3">Diajukan Pada</th>
                     <th class="py-3">Ruangan</th>
                     <th class="py-3">Tujuan</th>
                     <th class="py-3">Status</th>
@@ -55,7 +56,15 @@
                         };
                     @endphp
                     <tr class="history-row border-b last:border-b-0" data-status="{{ $rowStatus }}">
-                        <td class="py-4">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</td>
+                        <td class="py-4">
+                            <p class="font-medium">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ substr($r->jam_mulai, 0, 5) }} - {{ substr($r->jam_selesai, 0, 5) }} WIB
+                            </p>
+                        </td>
+                        <td class="py-4 text-gray-500 text-sm">
+                            {{ $r->created_at->translatedFormat('d M Y H:i') }} WIB
+                        </td>
                         <td class="py-4">
                             <p class="font-medium">{{ $r->room->nama ?? '-' }}</p>
                             <p class="text-gray-400 text-sm">Lantai {{ $r->room->lantai ?? '-' }}</p>
