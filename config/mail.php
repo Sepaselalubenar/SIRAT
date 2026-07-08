@@ -115,4 +115,20 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mailtrap API (HTTP Transport)
+    |--------------------------------------------------------------------------
+    |
+    | Digunakan sebagai pengganti SMTP ketika port SMTP diblokir di jaringan.
+    | MAILTRAP_API_KEY  : token dari menu "API Tokens" di sidebar Mailtrap.
+    | MAILTRAP_INBOX_ID : ID inbox sandbox (angka di URL mailtrap.io/sandboxes/{ID}).
+    | MAILTRAP_SANDBOX  : true = gunakan sandbox (testing), false = kirim live email.
+    |
+    */
+
+    'mailtrap_api_key' => env('MAILTRAP_API_KEY'),
+    'mailtrap_inbox_id' => env('MAILTRAP_INBOX_ID', 4765371),
+    'mailtrap_sandbox' => env('MAILTRAP_SANDBOX', true),
+
 ];

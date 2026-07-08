@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ReservationSuccessMail;
 use App\Models\Reservation;
 use App\Models\Room;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ class ReservationController extends Controller
             $this->pastikanMinimalHPlus2($data['tanggal']);
         }
 
-        Reservation::create([
+        $reservation = Reservation::create([
             'room_id' => $room->id,
             'user_id' => $user->id,
             'tanggal' => $data['tanggal'],
@@ -61,10 +62,21 @@ class ReservationController extends Controller
             'status' => $butuhApproval ? 'pending' : 'approved',
         ]);
 
+        // Kirim email notifikasi ke dosen.
+        // Muat relasi room & user agar tersedia di template email.
+        $reservation->load(['room', 'user']);
+
+        try {
+            (new ReservationSuccessMail($reservation))->sendViaApi();
+        } catch (\Exception $e) {
+            // Tangkap error API agar reservasi tetap tersimpan walau email gagal terkirim.
+            logger()->error('Gagal mengirim email notifikasi reservasi #' . $reservation->id . ': ' . $e->getMessage());
+        }
+
         return redirect('/history')
             ->with('success', $butuhApproval
-                ? 'Reservasi berhasil diajukan, menunggu approval admin.'
-                : 'Reservasi berhasil dan otomatis disetujui.');
+                ? 'Reservasi berhasil diajukan, menunggu approval admin. Email konfirmasi telah dikirim.'
+                : 'Reservasi berhasil dan otomatis disetujui. Email konfirmasi telah dikirim.');
     }
 
     /**

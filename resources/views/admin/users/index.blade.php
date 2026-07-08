@@ -158,6 +158,13 @@
         </div>
         <form action="{{ route('admin.users.store') }}" method="POST" class="p-6 space-y-4">
             @csrf
+            {{-- Info notice --}}
+            <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
+                <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Dosen masuk menggunakan <strong class="mx-1">NIP + Email</strong> tanpa password. Tidak perlu mengatur password.
+            </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" required
@@ -175,12 +182,6 @@
                 <input type="text" name="nip" value="{{ old('nip') }}"
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" placeholder="1234567890123456">
                 @error('nip') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password <span class="text-red-500">*</span></label>
-                <input type="password" name="password" required
-                    class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Minimal 6 karakter">
-                @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="closeCreateModal()"
@@ -220,11 +221,6 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">NIP <span class="text-gray-400 font-normal">(opsional)</span></label>
                 <input type="text" name="nip" id="edit-nip"
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password Baru <span class="text-gray-400 font-normal">(kosongkan jika tidak ingin mengubah)</span></label>
-                <input type="password" name="password"
-                    class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Minimal 6 karakter">
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="closeEditModal()"

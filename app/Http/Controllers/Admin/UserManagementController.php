@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class UserManagementController extends Controller
 {
@@ -30,25 +29,21 @@ class UserManagementController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'nip'      => 'nullable|string|max:20|unique:users,nip',
-            'password' => 'required|string|min:6',
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'nip'   => 'nullable|string|max:20|unique:users,nip',
         ], [
-            'name.required'     => 'Nama dosen wajib diisi.',
-            'email.required'    => 'Email wajib diisi.',
-            'email.unique'      => 'Email sudah digunakan.',
-            'nip.unique'        => 'NIP sudah terdaftar.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min'      => 'Password minimal 6 karakter.',
+            'name.required'  => 'Nama dosen wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.unique'   => 'Email sudah digunakan.',
+            'nip.unique'     => 'NIP sudah terdaftar.',
         ]);
 
         User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'nip'      => $validated['nip'] ?? null,
-            'role'     => 'dosen',
-            'password' => Hash::make($validated['password']),
+            'name'  => $validated['name'],
+            'email' => $validated['email'],
+            'nip'   => $validated['nip'] ?? null,
+            'role'  => 'dosen',
         ]);
 
         return redirect()->back()->with('success', 'Akun dosen berhasil ditambahkan.');
@@ -57,29 +52,21 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $user->id,
-            'nip'      => 'nullable|string|max:20|unique:users,nip,' . $user->id,
-            'password' => 'nullable|string|min:6',
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'nip'   => 'nullable|string|max:20|unique:users,nip,' . $user->id,
         ], [
             'name.required'  => 'Nama dosen wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique'   => 'Email sudah digunakan.',
             'nip.unique'     => 'NIP sudah terdaftar.',
-            'password.min'   => 'Password minimal 6 karakter.',
         ]);
 
-        $data = [
+        $user->update([
             'name'  => $validated['name'],
             'email' => $validated['email'],
             'nip'   => $validated['nip'] ?? null,
-        ];
-
-        if (!empty($validated['password'])) {
-            $data['password'] = Hash::make($validated['password']);
-        }
-
-        $user->update($data);
+        ]);
 
         return redirect()->back()->with('success', 'Data dosen berhasil diperbarui.');
     }
