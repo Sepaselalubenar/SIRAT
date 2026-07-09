@@ -163,12 +163,12 @@
                 <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Dosen masuk menggunakan <strong class="mx-1">NIP + Email</strong> tanpa password. Tidak perlu mengatur password.
+                <span>Dosen masuk menggunakan <strong class="font-bold">NIP + Email</strong> tanpa password. Tidak perlu mengatur password.</span>
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" required
-                    class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Dr. Contoh Nama, S.T., M.T.">
+                    class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nama">
                 @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
@@ -178,7 +178,7 @@
                 @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">NIP <span class="text-gray-400 font-normal">(opsional)</span></label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">NIP</label>
                 <input type="text" name="nip" value="{{ old('nip') }}"
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" placeholder="1234567890123456">
                 @error('nip') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -218,7 +218,7 @@
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">NIP <span class="text-gray-400 font-normal">(opsional)</span></label>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">NIP</label>
                 <input type="text" name="nip" id="edit-nip"
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
             </div>
