@@ -95,6 +95,26 @@
 
     <!-- Sidebar Backdrop for mobile -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+    <div id="creator-credit-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 px-4">
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">SIRAT Credits</p>
+                    <h3 class="mt-2 text-2xl font-bold text-gray-900">Zidan & Zidane</h3>
+                </div>
+                <button type="button" id="creator-credit-close" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800" aria-label="Tutup kredit pembuat">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mt-5 rounded-xl bg-blue-50 p-4 text-sm text-gray-700">
+                <p class="font-semibold text-gray-900">Sistem Reservasi Area TULT</p>
+                <p class="mt-2">Terima kasih sudah menemukan easter egg kecil ini.</p>
+                <p class="mt-3 text-xs text-gray-500">Klik area luar atau tombol tutup untuk kembali.</p>
+            </div>
+        </div>
+    </div>
 
     <div class="flex min-h-screen">
 
@@ -102,11 +122,11 @@
         <aside id="sidebar" class="w-72 bg-blue-700 text-white flex flex-col shrink-0 h-screen sticky top-0">
             <!-- Brand & Toggle Header -->
             <div class="sidebar-header p-8 flex items-center justify-between border-b border-blue-600/50">
-                <div>
+                <button type="button" id="creator-credit-trigger" class="text-left rounded-xl focus:outline-none focus:ring-2 focus:ring-white/70" aria-label="Logo SIRAT">
                     <h1 class="text-3xl font-bold sidebar-logo-text">SIRAT</h1>
                     <h1 class="text-3xl font-bold sidebar-logo-short hidden">S</h1>
                     <p class="text-blue-100 mt-2 text-sm sidebar-text">Panel Admin - Area TULT</p>
-                </div>
+                </button>
                 <button type="button" id="sidebar-toggle" class="text-white hover:bg-blue-600 p-2 rounded-xl transition cursor-pointer">
                     <!-- Collapse/Close Icon -->
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,6 +237,22 @@
             const toggle = document.getElementById('sidebar-toggle');
             const mobileToggle = document.getElementById('mobile-sidebar-toggle');
             const backdrop = document.getElementById('sidebar-backdrop');
+            const creditTrigger = document.getElementById('creator-credit-trigger');
+            const creditModal = document.getElementById('creator-credit-modal');
+            const creditClose = document.getElementById('creator-credit-close');
+            let creditClickCount = 0;
+            let creditClickTimer = null;
+
+            function openCreditModal() {
+                creditModal.classList.remove('hidden');
+                creditModal.classList.add('flex');
+                creditClickCount = 0;
+            }
+
+            function closeCreditModal() {
+                creditModal.classList.add('hidden');
+                creditModal.classList.remove('flex');
+            }
             
             // Sync state with HTML header script check
             if (window.innerWidth >= 1024) {
@@ -257,6 +293,32 @@
                 backdrop.addEventListener('click', function() {
                     sidebar.classList.remove('open');
                     backdrop.classList.add('hidden');
+                });
+            }
+
+            if (creditTrigger) {
+                creditTrigger.addEventListener('click', function() {
+                    creditClickCount += 1;
+                    clearTimeout(creditClickTimer);
+                    creditClickTimer = setTimeout(function() {
+                        creditClickCount = 0;
+                    }, 3000);
+
+                    if (creditClickCount >= 10) {
+                        openCreditModal();
+                    }
+                });
+            }
+
+            if (creditClose) {
+                creditClose.addEventListener('click', closeCreditModal);
+            }
+
+            if (creditModal) {
+                creditModal.addEventListener('click', function(event) {
+                    if (event.target === creditModal) {
+                        closeCreditModal();
+                    }
                 });
             }
         });

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Room;
 use App\Mail\ReservationStatusMail;
+use Illuminate\Support\Facades\Mail;
 
 class DashboardController extends Controller
 {
@@ -48,7 +49,7 @@ class DashboardController extends Controller
         // Kirim email notifikasi ke dosen
         $reservation->load(['room', 'user']);
         try {
-            (new ReservationStatusMail($reservation))->sendViaApi();
+            Mail::to($reservation->user->email)->send(new ReservationStatusMail($reservation));
         } catch (\Throwable $e) {
             logger()->error('Gagal mengirim email status disetujui #' . $reservation->id . ': ' . $e->getMessage());
         }
@@ -73,7 +74,7 @@ class DashboardController extends Controller
         // Kirim email notifikasi ke dosen
         $reservation->load(['room', 'user']);
         try {
-            (new ReservationStatusMail($reservation))->sendViaApi();
+            Mail::to($reservation->user->email)->send(new ReservationStatusMail($reservation));
         } catch (\Throwable $e) {
             logger()->error('Gagal mengirim email status ditolak #' . $reservation->id . ': ' . $e->getMessage());
         }

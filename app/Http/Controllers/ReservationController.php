@@ -8,6 +8,7 @@ use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
@@ -67,7 +68,7 @@ class ReservationController extends Controller
         $reservation->load(['room', 'user']);
 
         try {
-            (new ReservationSuccessMail($reservation))->sendViaApi();
+            Mail::to($reservation->user->email)->send(new ReservationSuccessMail($reservation));
         } catch (\Throwable $e) {
             // Tangkap error API agar reservasi tetap tersimpan walau email gagal terkirim.
             logger()->error('Gagal mengirim email notifikasi reservasi #' . $reservation->id . ': ' . $e->getMessage());
