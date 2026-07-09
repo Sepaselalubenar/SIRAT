@@ -42,7 +42,7 @@
                 <tbody>
                     @foreach($reservations as $r)
                         @php
-                            $isPast = \Illuminate\Support\Carbon::parse($r->tanggal)->isPast();
+                            $isPast = \Illuminate\Support\Carbon::parse($r->tanggal . ' ' . $r->jam_selesai)->isPast();
                             $rowStatus = match(true) {
                                 $r->status === 'pending' => 'pending',
                                 $r->status === 'rejected' => 'rejected',
@@ -92,7 +92,7 @@
         <div class="md:hidden space-y-4">
             @foreach($reservations as $r)
                 @php
-                    $isPast = \Illuminate\Support\Carbon::parse($r->tanggal)->isPast();
+                    $isPast = \Illuminate\Support\Carbon::parse($r->tanggal . ' ' . $r->jam_selesai)->isPast();
                     $rowStatus = match(true) {
                         $r->status === 'pending' => 'pending',
                         $r->status === 'rejected' => 'rejected',
