@@ -296,17 +296,17 @@
             {{-- Galeri foto + zoom --}}
             <div>
                 <div class="relative bg-gray-900 rounded-xl overflow-hidden h-72 flex items-center justify-center">
-                    <span class="absolute top-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded" id="modal-photo-counter"></span>
+                    <span class="absolute top-4 left-4 z-20 bg-black/70 text-white text-xs font-semibold px-3 py-1 rounded-full shadow" id="modal-photo-counter"></span>
 
-                    <button type="button" id="modal-prev" class="absolute left-3 bg-white/90 hover:bg-white rounded-full w-9 h-9 flex items-center justify-center">&lsaquo;</button>
+                    <button type="button" id="modal-prev" class="absolute left-3 top-1/2 z-20 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full w-9 h-9 flex items-center justify-center shadow text-xl font-semibold text-gray-700">&lsaquo;</button>
 
                     <div class="overflow-hidden w-full h-full flex items-center justify-center">
                         <img id="modal-photo" src="" class="max-h-full transition-transform duration-150 select-none" draggable="false">
                     </div>
 
-                    <button type="button" id="modal-next" class="absolute right-3 bg-white/90 hover:bg-white rounded-full w-9 h-9 flex items-center justify-center">&rsaquo;</button>
+                    <button type="button" id="modal-next" class="absolute right-3 top-1/2 z-20 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full w-9 h-9 flex items-center justify-center shadow text-xl font-semibold text-gray-700">&rsaquo;</button>
 
-                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 rounded-full flex items-center gap-3 px-3 py-1">
+                    <div class="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 bg-black/60 rounded-full flex items-center gap-3 px-3 py-1">
                         <button type="button" id="modal-zoom-out" class="text-white px-1">&minus;</button>
                         <span class="text-white text-xs" id="modal-zoom-label">100%</span>
                         <button type="button" id="modal-zoom-in" class="text-white px-1">&plus;</button>

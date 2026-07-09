@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class RoomPhoto extends Model
 {
+    protected $appends = [
+        'url',
+    ];
+
     protected $fillable = [
         'room_id',
         'path',
