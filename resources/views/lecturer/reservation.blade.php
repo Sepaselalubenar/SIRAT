@@ -557,7 +557,7 @@
     }
 
     function minAllowedDate(room) {
-        const days = String(room.lantai) === lantaiApproval ? {{ $minHariApproval }} : 1;
+        const days = String(room.lantai) === lantaiApproval ? {{ $minHariApproval }} : 0;
         const d = new Date();
         d.setHours(0, 0, 0, 0);
         d.setDate(d.getDate() + days);
@@ -691,6 +691,21 @@
 })();
 
 // ====== Konfirmasi Modal ======
+function localDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return year + '-' + month + '-' + day;
+}
+
+function currentTimeString(date) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return hours + ':' + minutes;
+}
+
 function openConfirmModal() {
     const roomId    = document.getElementById('input-room-id').value;
     const tanggal   = document.getElementById('input-tanggal').value;
@@ -712,6 +727,11 @@ function openConfirmModal() {
     }
     if (!jamMulai || !jamSelesai) {
         alert('Silakan isi jam mulai dan jam selesai.');
+        return;
+    }
+    const now = new Date();
+    if (tanggal === localDateString(now) && jamMulai <= currentTimeString(now)) {
+        alert('Jam mulai reservasi sudah lewat. Untuk reservasi hari ini, pilih jam setelah waktu sekarang.');
         return;
     }
     if (!tujuan) {

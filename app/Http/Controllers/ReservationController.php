@@ -28,7 +28,7 @@ class ReservationController extends Controller
     {
         $data = $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'tanggal' => 'required|date|after:today',
+            'tanggal' => 'required|date|after_or_equal:today',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i',
             'tujuan' => 'required|string|max:100',
@@ -42,6 +42,7 @@ class ReservationController extends Controller
         $jamSelesai = Carbon::parse($data['jam_selesai']);
 
         $this->pastikanDalamJamOperasional($jamMulai, $jamSelesai);
+        $this->pastikanJamMulaiBelumLewat($data['tanggal'], $jamMulai);
         $this->pastikanTidakBentrokTanggalDosen($user->id, $data['tanggal']);
         $this->pastikanRuanganKosong($room->id, $data['tanggal'], $jamMulai, $jamSelesai);
 
@@ -98,6 +99,21 @@ class ReservationController extends Controller
         if ($jamSelesai->lte($jamMulai)) {
             throw ValidationException::withMessages([
                 'jam_selesai' => 'Jam selesai harus setelah jam mulai.',
+            ]);
+        }
+    }
+
+    /**
+     * Untuk tanggal hari ini, jam mulai tidak boleh sudah lewat dari waktu sekarang.
+     */
+    private function pastikanJamMulaiBelumLewat(string $tanggal, Carbon $jamMulai): void
+    {
+        $tanggalReservasi = Carbon::parse($tanggal)->toDateString();
+        $mulaiReservasi = Carbon::parse($tanggalReservasi . ' ' . $jamMulai->format('H:i'));
+
+        if ($mulaiReservasi->lte(now())) {
+            throw ValidationException::withMessages([
+                'jam_mulai' => 'Jam mulai reservasi sudah lewat. Untuk reservasi hari ini, pilih jam setelah waktu sekarang.',
             ]);
         }
     }

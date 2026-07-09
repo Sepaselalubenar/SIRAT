@@ -144,7 +144,7 @@ class RoomManagementController extends Controller
         $validated = $request->validate([
             'room_id' => 'required|exists:rooms,id',
             'user_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date',
+            'tanggal' => 'required|date|after_or_equal:today',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i',
             'tujuan' => 'required|string|max:100',
@@ -158,6 +158,14 @@ class RoomManagementController extends Controller
 
         if ($jamSelesai->lte($jamMulai)) {
             return redirect()->back()->withErrors(['jam_selesai' => 'Jam selesai harus setelah jam mulai.'])->withInput();
+        }
+
+        $mulaiReservasi = \Illuminate\Support\Carbon::parse(
+            \Illuminate\Support\Carbon::parse($tanggal)->toDateString() . ' ' . $jamMulai->format('H:i')
+        );
+
+        if ($mulaiReservasi->lte(now())) {
+            return redirect()->back()->withErrors(['jam_mulai' => 'Jam mulai reservasi sudah lewat. Untuk reservasi hari ini, pilih jam setelah waktu sekarang.'])->withInput();
         }
 
         // Overlap check
