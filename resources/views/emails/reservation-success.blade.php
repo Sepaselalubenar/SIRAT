@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservasi Berhasil – PINTU TULT</title>
+    <title>Reservasi Berhasil – SIRAT</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f1f5f9; font-family: 'Segoe UI', Arial, sans-serif;">
 
@@ -20,8 +20,8 @@
                         <div style="display:inline-block; background:rgba(255,255,255,0.15); border-radius:50%; padding:14px; margin-bottom:16px;">
                             <span style="font-size:32px; display:block; line-height:1;">🏛️</span>
                         </div>
-                        <h1 style="color:#ffffff; margin:0 0 6px 0; font-size:26px; font-weight:700; letter-spacing:-0.5px;">PINTU TULT</h1>
-                        <p style="color:#bfdbfe; margin:0; font-size:14px;">Sistem Reservasi Ruangan Telkom University</p>
+                        <h1 style="color:#ffffff; margin:0 0 6px 0; font-size:26px; font-weight:700; letter-spacing:-0.5px;">SIRAT</h1>
+                        <p style="color:#bfdbfe; margin:0; font-size:14px;">Sistem Reservasi Ruangan FTE</p>
                     </td>
                 </tr>
 
@@ -171,7 +171,7 @@
                             Email ini dikirim otomatis oleh sistem. Jangan membalas email ini.
                         </p>
                         <p style="margin:0; font-size:13px; color:#9ca3af;">
-                            &copy; {{ date('Y') }} PINTU – Sistem Reservasi Ruangan Telkom University
+                            &copy; {{ date('Y') }} SIRAT – Sistem Reservasi Ruangan FTE
                         </p>
                     </td>
                 </tr>

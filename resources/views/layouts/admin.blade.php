@@ -109,7 +109,7 @@
                 </button>
             </div>
             <div class="mt-5 rounded-xl bg-blue-50 p-4 text-sm text-gray-700">
-                <p class="font-semibold text-gray-900">Sistem Reservasi Area TULT</p>
+                <p class="font-semibold text-gray-900">Sistem Reservasi Ruangan FTE</p>
                 <p class="mt-2">Terima kasih sudah menemukan easter egg kecil ini.</p>
                 <p class="mt-3 text-xs text-gray-500">Klik area luar atau tombol tutup untuk kembali.</p>
             </div>
@@ -125,7 +125,7 @@
                 <button type="button" id="creator-credit-trigger" class="text-left rounded-xl focus:outline-none focus:ring-2 focus:ring-white/70" aria-label="Logo SIRAT">
                     <h1 class="text-3xl font-bold sidebar-logo-text">SIRAT</h1>
                     <h1 class="text-3xl font-bold sidebar-logo-short hidden">S</h1>
-                    <p class="text-blue-100 mt-2 text-sm sidebar-text">Panel Admin - Area TULT</p>
+                    <p class="text-blue-100 mt-2 text-sm sidebar-text">Panel Admin - Sistem Reservasi Ruangan FTE</p>
                 </button>
                 <button type="button" id="sidebar-toggle" class="text-white hover:bg-blue-600 p-2 rounded-xl transition cursor-pointer">
                     <!-- Collapse/Close Icon -->

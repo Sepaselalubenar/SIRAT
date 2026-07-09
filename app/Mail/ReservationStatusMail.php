@@ -22,7 +22,7 @@ class ReservationStatusMail extends Mailable
             : 'Ditolak';
 
         return new Envelope(
-            subject: "[PINTU] Status Reservasi {$this->reservation->room->nama} - {$statusLabel}",
+            subject: "[SIRAT] Status Reservasi {$this->reservation->room->nama} - {$statusLabel}",
         );
     }
 

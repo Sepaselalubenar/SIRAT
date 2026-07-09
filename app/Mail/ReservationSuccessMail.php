@@ -22,7 +22,7 @@ class ReservationSuccessMail extends Mailable
             : 'Menunggu Persetujuan Admin';
 
         return new Envelope(
-            subject: "[PINTU] Reservasi {$this->reservation->room->nama} - {$statusLabel}",
+            subject: "[SIRAT] Reservasi {$this->reservation->room->nama} - {$statusLabel}",
         );
     }
 

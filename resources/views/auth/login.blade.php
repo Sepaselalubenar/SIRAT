@@ -10,84 +10,67 @@
 
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gradient-to-b from-[#050b2e] via-blue-700 to-white min-h-screen">
 
-<div class="min-h-screen flex">
+<div class="min-h-screen flex items-center justify-center p-6">
 
-    <!-- kiri -->
+    <div class="bg-white/90 backdrop-blur p-10 rounded-2xl shadow-xl w-full max-w-[440px] border border-blue-100">
 
-    <div class="hidden lg:block w-1/2">
+        <h1 class="text-4xl font-bold text-blue-600 mb-2 text-center">
+            SIRAT
+        </h1>
 
-        <img
-            src="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-            class="w-full h-full object-cover"
-        >
+        <p class="text-gray-400 text-sm mb-1 text-center">
+            Sistem Reservasi Ruangan FTE
+        </p>
 
-    </div>
+        <p class="text-gray-700 font-semibold mb-1 text-center">
+            Masuk untuk melanjutkan
+        </p>
 
-    <!-- kanan -->
+        <p class="text-gray-500 text-sm mb-8 text-center">
+            Gunakan NIP dan email resmi Anda
+        </p>
 
-    <div class="flex w-full lg:w-1/2 items-center justify-center">
+        @if ($errors->any())
+            <div class="bg-red-50 text-red-600 text-sm rounded-lg p-3 mb-4">
+                {{ $errors->first() }}
+            </div>
+        @endif
 
-        <div class="bg-white p-10 rounded-xl shadow-lg w-[420px]">
+        <form method="POST" action="{{ route('login.store') }}">
+            @csrf
 
-            <h1 class="text-4xl font-bold text-blue-600 mb-2">
-                SIRAT
-            </h1>
+            <label class="block text-sm font-medium text-gray-700 mb-1">NIP</label>
+            <input
+                type="text"
+                name="nip"
+                value="{{ old('nip') }}"
+                placeholder="Masukkan NIP Anda"
+                class="w-full border border-gray-200 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            >
 
-            <p class="text-gray-400 text-sm mb-1">
-                Sistem Reservasi Area TULT
-            </p>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+                type="email"
+                name="email"
+                value="{{ old('email') }}"
+                placeholder="Masukkan email resmi Anda"
+                class="w-full border border-gray-200 rounded-lg p-3 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            >
 
-            <p class="text-gray-700 font-semibold mb-1">
-                Masuk untuk melanjutkan
-            </p>
+            <button
+                type="submit"
+                class="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg p-3 font-semibold hover:from-blue-600 hover:to-blue-800 transition">
 
-            <p class="text-gray-500 text-sm mb-8">
-                Gunakan NIP dan email resmi Anda
-            </p>
+                Masuk
 
-            @if ($errors->any())
-                <div class="bg-red-50 text-red-600 text-sm rounded-lg p-3 mb-4">
-                    {{ $errors->first() }}
-                </div>
-            @endif
+            </button>
+        </form>
 
-            <form method="POST" action="{{ route('login.store') }}">
-                @csrf
-
-                <label class="block text-sm font-medium text-gray-700 mb-1">NIP</label>
-                <input
-                    type="text"
-                    name="nip"
-                    value="{{ old('nip') }}"
-                    placeholder="Masukkan NIP Anda"
-                    class="w-full border rounded-lg p-3 mb-4"
-                >
-
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                    type="email"
-                    name="email"
-                    value="{{ old('email') }}"
-                    placeholder="Masukkan email resmi Anda"
-                    class="w-full border rounded-lg p-3 mb-6"
-                >
-
-                <button
-                    type="submit"
-                    class="w-full bg-blue-600 text-white rounded-lg p-3 hover:bg-blue-700">
-
-                    Masuk
-
-                </button>
-            </form>
-
-            <p class="text-center text-sm text-gray-400 mt-6">
-                Admin? <a href="{{ route('admin.login') }}" class="text-blue-600">Masuk di sini</a>
-            </p>
-
-        </div>
+        <p class="text-center text-sm text-gray-400 mt-6">
+            Admin? <a href="{{ route('admin.login') }}" class="text-blue-600 font-medium">Masuk di sini</a>
+        </p>
 
     </div>
 
