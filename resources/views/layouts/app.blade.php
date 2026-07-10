@@ -175,9 +175,9 @@
             <!-- CS & Logout Section -->
             <div class="p-5 border-t border-blue-600/50">
                 <div class="sidebar-cs-card bg-blue-600 rounded-xl p-4 mb-3">
-                    <p class="font-semibold">CS TULT</p>
-                    <p class="text-sm mt-2">0812-3456-7890</p>
-                    <p class="text-xs">cs.tult@telkomuniversity.ac.id</p>
+                    <p class="font-semibold">Kontak LAA FTE</p>
+                    <p class="text-sm mt-2">0812-2425-3349</p>
+                    <p class="text-xs">laa.fte@telkomuniversity.ac.id</p>
                 </div>
 
                 <form method="POST" action="{{ route('logout') }}">
