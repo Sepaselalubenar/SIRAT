@@ -43,7 +43,6 @@ class ReservationController extends Controller
 
         $this->pastikanDalamJamOperasional($jamMulai, $jamSelesai);
         $this->pastikanJamMulaiBelumLewat($data['tanggal'], $jamMulai);
-        $this->pastikanTidakBentrokJadwalDosen($user->id, $data['tanggal'], $jamMulai, $jamSelesai);
         $this->pastikanRuanganKosong($room->id, $data['tanggal'], $jamMulai, $jamSelesai);
 
         $butuhApproval = (string) $room->lantai === self::LANTAI_APPROVAL;
@@ -59,7 +58,7 @@ class ReservationController extends Controller
             'jam_mulai' => $jamMulai->format('H:i'),
             'jam_selesai' => $jamSelesai->format('H:i'),
             'tujuan' => $data['tujuan'],
-            'keterangan' => $data['keterangan'] ?? null,
+            'keterangan' => $butuhApproval ? null : ($data['keterangan'] ?? null),
             // Lantai 19 wajib approval admin, lantai lain langsung disetujui kalau kosong.
             'status' => $butuhApproval ? 'pending' : 'approved',
         ]);
@@ -118,24 +117,7 @@ class ReservationController extends Controller
         }
     }
 
-    /**
-     * Satu dosen tidak boleh memiliki reservasi di jam yang tumpang tindih pada tanggal yang sama.
-     */
-    private function pastikanTidakBentrokJadwalDosen(int $userId, string $tanggal, Carbon $jamMulai, Carbon $jamSelesai): void
-    {
-        $bentrok = Reservation::where('user_id', $userId)
-            ->where('tanggal', $tanggal)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where('jam_mulai', '<', $jamSelesai->format('H:i'))
-            ->where('jam_selesai', '>', $jamMulai->format('H:i'))
-            ->exists();
 
-        if ($bentrok) {
-            throw ValidationException::withMessages([
-                'jam_mulai' => 'Anda sudah memiliki reservasi lain yang bertabrakan dengan rentang jam ini.',
-            ]);
-        }
-    }
 
     /**
      * Ruangan yang sama tidak boleh dipesan di jam yang tumpang tindih pada tanggal yang sama.

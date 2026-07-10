@@ -247,31 +247,38 @@
 
                         <p class="text-gray-400 text-xs mt-2">Jam operasional gedung: 07.00 - 18.30</p>
 
-                        <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Tujuan Reservasi</label>
-                        <select name="tujuan" id="input-tujuan" class="w-full border rounded-lg p-3 mb-1">
-                            <option value="">Pilih tujuan reservasi</option>
-                            <option value="Sidang" @selected(old('tujuan') === 'Sidang')>Sidang</option>
-                            <option value="Meeting" @selected(old('tujuan') === 'Meeting')>Meeting</option>
-                            <option value="Ujian Sidang Tugas Akhir" @selected(old('tujuan') === 'Ujian Sidang Tugas Akhir')>Ujian Sidang Tugas Akhir</option>
-                            <option value="Seminar" @selected(old('tujuan') === 'Seminar')>Seminar</option>
-                            <option value="Lainnya" @selected(old('tujuan') === 'Lainnya')>Lainnya</option>
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Tujuan Reservasi <span id="tujuan-required-star" class="hidden text-red-500">*</span></label>
+                        <div id="container-tujuan-select">
+                            <select name="tujuan" id="input-tujuan" class="w-full border rounded-lg p-3 mb-1">
+                                <option value="">Pilih tujuan reservasi</option>
+                                <option value="Sidang" @selected(old('tujuan') === 'Sidang')>Sidang</option>
+                                <option value="Meeting" @selected(old('tujuan') === 'Meeting')>Meeting</option>
+                                <option value="Ujian Sidang Tugas Akhir" @selected(old('tujuan') === 'Ujian Sidang Tugas Akhir')>Ujian Sidang Tugas Akhir</option>
+                                <option value="Seminar" @selected(old('tujuan') === 'Seminar')>Seminar</option>
+                                <option value="Lainnya" @selected(old('tujuan') === 'Lainnya')>Lainnya</option>
+                            </select>
+                        </div>
+                        <div id="container-tujuan-input" class="hidden">
+                            <input type="text" id="input-tujuan-input" value="{{ old('tujuan') }}" placeholder="Masukkan tujuan reservasi (wajib)" class="w-full border rounded-lg p-3 mb-1">
+                        </div>
                         @error('tujuan')
                             <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
                         @enderror
 
-                        <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan (Opsional)</label>
-                        <textarea
-                            name="keterangan"
-                            id="input-keterangan"
-                            maxlength="200"
-                            rows="3"
-                            placeholder="Tambahkan keterangan jika diperlukan"
-                            class="w-full border rounded-lg p-3"
-                        >{{ old('keterangan') }}</textarea>
-                        @error('keterangan')
-                            <p class="text-red-500 text-xs">{{ $message }}</p>
-                        @enderror
+                        <div id="container-keterangan">
+                            <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan (Opsional)</label>
+                            <textarea
+                                name="keterangan"
+                                id="input-keterangan"
+                                maxlength="200"
+                                rows="3"
+                                placeholder="Tambahkan keterangan jika diperlukan"
+                                class="w-full border rounded-lg p-3"
+                            >{{ old('keterangan') }}</textarea>
+                            @error('keterangan')
+                                <p class="text-red-500 text-xs">{{ $message }}</p>
+                            @enderror
+                        </div>
 
                         <div id="notice-h2" class="hidden bg-blue-50 text-blue-700 text-sm rounded-lg p-3 mt-4">
                             Untuk ruangan lantai {{ $lantaiApproval }}, minimal reservasi H+{{ $minHariApproval }}.
@@ -403,10 +410,11 @@
 </div>
 
 <script>
+const lantaiApproval = @json((string) $lantaiApproval);
+let currentSelectedRoom = null;
 (function () {
     const floorTabs = document.querySelectorAll('.floor-tab');
     const floorPanels = document.querySelectorAll('.floor-panel');
-    const lantaiApproval = @json((string) $lantaiApproval);
 
     function showFloor(floor) {
         floorTabs.forEach(tab => {
@@ -633,7 +641,6 @@
         renderCalendar(currentSelectedRoom);
     });
 
-    let currentSelectedRoom = null;
     function selectRoom(room) {
         setupRoomDetails(room);
 
@@ -643,6 +650,39 @@
 
         const notice = document.getElementById('notice-h2');
         notice.classList.toggle('hidden', String(room.lantai) !== lantaiApproval);
+
+        const isFloor19 = String(room.lantai) === lantaiApproval;
+        const containerSelect = document.getElementById('container-tujuan-select');
+        const containerInput = document.getElementById('container-tujuan-input');
+        const selectEl = document.getElementById('input-tujuan');
+        const inputEl = document.getElementById('input-tujuan-input');
+        const starEl = document.getElementById('tujuan-required-star');
+        
+        const containerKeterangan = document.getElementById('container-keterangan');
+        const inputKeterangan = document.getElementById('input-keterangan');
+
+        if (isFloor19) {
+            containerSelect.classList.add('hidden');
+            selectEl.removeAttribute('name');
+            
+            containerInput.classList.remove('hidden');
+            inputEl.setAttribute('name', 'tujuan');
+            starEl.classList.remove('hidden');
+            
+            containerKeterangan.classList.add('hidden');
+            inputKeterangan.removeAttribute('name');
+            inputKeterangan.value = '';
+        } else {
+            containerInput.classList.add('hidden');
+            inputEl.removeAttribute('name');
+            starEl.classList.add('hidden');
+            
+            containerSelect.classList.remove('hidden');
+            selectEl.setAttribute('name', 'tujuan');
+            
+            containerKeterangan.classList.remove('hidden');
+            inputKeterangan.setAttribute('name', 'keterangan');
+        }
 
         currentSelectedRoom = room;
         const today = new Date();
@@ -711,8 +751,15 @@ function openConfirmModal() {
     const tanggal   = document.getElementById('input-tanggal').value;
     const jamMulai  = document.getElementById('input-jam-mulai').value;
     const jamSelesai= document.getElementById('input-jam-selesai').value;
-    const tujuan    = document.getElementById('input-tujuan').value;
-    const keterangan= document.getElementById('input-keterangan').value.trim();
+    
+    const isFloor19 = currentSelectedRoom && String(currentSelectedRoom.lantai) === lantaiApproval;
+    const tujuan    = isFloor19 
+        ? document.getElementById('input-tujuan-input').value.trim() 
+        : document.getElementById('input-tujuan').value;
+    const keterangan= isFloor19 
+        ? '' 
+        : document.getElementById('input-keterangan').value.trim();
+        
     const roomName  = document.getElementById('ringkasan-nama-ruangan').textContent;
     const roomInfo  = document.getElementById('ringkasan-lantai-ruangan').innerHTML;
 
@@ -735,7 +782,11 @@ function openConfirmModal() {
         return;
     }
     if (!tujuan) {
-        alert('Silakan pilih tujuan reservasi.');
+        if (isFloor19) {
+            alert('Silakan isi tujuan reservasi.');
+        } else {
+            alert('Silakan pilih tujuan reservasi.');
+        }
         return;
     }
 
