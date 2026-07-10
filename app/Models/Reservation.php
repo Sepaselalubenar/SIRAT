@@ -19,6 +19,7 @@ class Reservation extends Model
         'keterangan',
         'status',
         'alasan_penolakan',
+        'alasan_pembatalan',
         'approved_by',
     ];
 

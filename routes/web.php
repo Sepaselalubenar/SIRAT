@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Reservation management
     Route::get('/admin/reservations', [ReservationManagementController::class, 'index'])->name('admin.reservations.index');
+    Route::post('/admin/reservations/{id}/cancel', [ReservationManagementController::class, 'cancel'])->name('admin.reservations.cancel');
     Route::delete('/admin/reservations/{id}', [ReservationManagementController::class, 'destroy'])->name('admin.reservations.destroy');
 
     // Calendar (admin can also access dosen calendar view)

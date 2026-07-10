@@ -128,8 +128,8 @@ class ReservationController extends Controller
         $bentrok = Reservation::where('room_id', $roomId)
             ->where('tanggal', $tanggal)
             ->whereIn('status', ['pending', 'approved'])
-            ->where('jam_mulai', '<', $jamSelesai->format('H:i'))
-            ->where('jam_selesai', '>', $jamMulai->format('H:i'))
+            ->where('jam_mulai', '<', $jamSelesai->format('H:i:00'))
+            ->where('jam_selesai', '>', $jamMulai->format('H:i:00'))
             ->exists();
 
         if ($bentrok) {

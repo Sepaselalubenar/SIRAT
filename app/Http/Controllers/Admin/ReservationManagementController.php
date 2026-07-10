@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
+use App\Mail\ReservationCancelledMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ReservationManagementController extends Controller
 {
@@ -57,6 +59,31 @@ class ReservationManagementController extends Controller
         $reservations = $query->get();
 
         return view('admin.reservations.index', compact('reservations', 'sortBy', 'order'));
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $request->validate([
+            'alasan_pembatalan' => 'required|string|max:500',
+        ]);
+
+        $reservation = Reservation::findOrFail($id);
+
+        $reservation->update([
+            'status'            => 'cancelled',
+            'alasan_pembatalan' => $request->alasan_pembatalan,
+            'approved_by'       => auth()->id(),
+        ]);
+
+        // Kirim email notifikasi ke dosen
+        $reservation->load(['room', 'user']);
+        try {
+            Mail::to($reservation->user->email)->send(new ReservationCancelledMail($reservation));
+        } catch (\Throwable $e) {
+            logger()->error('Gagal mengirim email pembatalan reservasi #' . $reservation->id . ': ' . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Reservasi berhasil dibatalkan dan email notifikasi telah dikirim.');
     }
 
     public function destroy($id)

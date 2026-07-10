@@ -173,6 +173,17 @@
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200">
                                         <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-yellow-500"></span> Pending
                                     </span>
+                                @elseif($reservation->status === 'cancelled')
+                                    <div>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500"></span> Dibatalkan
+                                        </span>
+                                        @if($reservation->alasan_pembatalan)
+                                            <span class="block text-xxs text-amber-500 mt-1 italic max-w-[150px] truncate" title="{{ $reservation->alasan_pembatalan }}">
+                                                Alasan: "{{ $reservation->alasan_pembatalan }}"
+                                            </span>
+                                        @endif
+                                    </div>
                                 @else
                                     <div>
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
@@ -187,13 +198,17 @@
                                 @endif
                             </td>
                             <td class="py-4 px-6 text-right">
-                                <form action="{{ route('admin.reservations.destroy', $reservation->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data reservasi ini?');" class="inline-block">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer">
+                                @if($reservation->status !== 'cancelled')
+                                    <button
+                                        type="button"
+                                        onclick="openCancelModal({{ $reservation->id }})"
+                                        class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer"
+                                    >
                                         Hapus
                                     </button>
-                                </form>
+                                @else
+                                    <span class="text-xs text-gray-400 italic">Sudah dibatalkan</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -209,9 +224,71 @@
     </div>
 </div>
 
+{{-- Modal Batalkan Reservasi --}}
+<div id="modal-cancel" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Batalkan Reservasi</h3>
+            <button type="button" onclick="closeCancelModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-semibold">&times;</button>
+        </div>
+
+        <form id="form-cancel" method="POST" class="p-6 space-y-4">
+            @csrf
+            <p class="text-sm text-gray-600">Pembatalan akan mengubah status reservasi menjadi <strong class="text-amber-700">Dibatalkan</strong> dan mengirim email notifikasi ke dosen.</p>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Alasan Pembatalan <span class="text-red-500">*</span></label>
+                <textarea
+                    name="alasan_pembatalan"
+                    id="cancel-alasan"
+                    required
+                    rows="3"
+                    class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    placeholder="Tulis alasan pembatalan..."
+                ></textarea>
+            </div>
+
+            <div class="pt-4 border-t flex justify-end gap-3">
+                <button type="button" onclick="closeCancelModal()" class="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold transition text-sm">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold transition text-sm">
+                    Batalkan Reservasi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <style>
     .text-xxs {
         font-size: 0.65rem;
     }
 </style>
+
+<script>
+    function openCancelModal(reservationId) {
+        const form = document.getElementById('form-cancel');
+        form.action = `/admin/reservations/${reservationId}/cancel`;
+
+        // Clear textarea on each open
+        document.getElementById('cancel-alasan').value = '';
+
+        const modal = document.getElementById('modal-cancel');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeCancelModal() {
+        const modal = document.getElementById('modal-cancel');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    // Close modal when clicking backdrop
+    document.getElementById('modal-cancel').addEventListener('click', function(e) {
+        if (e.target === this) closeCancelModal();
+    });
+</script>
 @endsection

@@ -189,4 +189,124 @@ class ReservationTest extends TestCase
 
         $responseFail->assertSessionHasErrors(['tujuan']);
     }
+
+    public function test_admin_cannot_make_overlapping_reservations_in_the_same_room()
+    {
+        $admin = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@test.com',
+            'role' => 'admin',
+            'password' => bcrypt('password'),
+        ]);
+
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang A',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'fasilitas' => ['AC', 'WiFi'],
+            'deskripsi' => 'Ruang Sidang A',
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        // 1. Create a reservation for Room A
+        $response1 = $this->actingAs($admin)->post('/admin/rooms/reserve', [
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat Admin',
+        ]);
+
+        $response1->assertRedirect();
+        $this->assertDatabaseHas('reservations', [
+            'room_id' => $room->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+        ]);
+
+        // 2. Try to create overlapping reservation
+        $response2 = $this->actingAs($admin)->post('/admin/rooms/reserve', [
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '11:00',
+            'tujuan' => 'Rapat Admin 2',
+        ]);
+
+        $response2->assertSessionHasErrors(['jam_mulai']);
+    }
+
+    public function test_admin_cannot_approve_overlapping_reservation()
+    {
+        $admin = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@test.com',
+            'role' => 'admin',
+            'password' => bcrypt('password'),
+        ]);
+
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang A',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '19',
+            'kapasitas' => 20,
+            'fasilitas' => ['AC', 'WiFi'],
+            'deskripsi' => 'Ruang Sidang A',
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        // 1. Create an approved reservation
+        $approvedRes = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Approved Meeting',
+            'status' => 'approved',
+        ]);
+
+        // 2. Force create a pending reservation that overlaps
+        $pendingRes = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '11:00',
+            'tujuan' => 'Overlapping Meeting',
+            'status' => 'pending',
+        ]);
+
+        // 3. Admin attempts to approve the overlapping pending reservation
+        $response = $this->actingAs($admin)->post("/admin/reservations/{$pendingRes->id}/approve");
+
+        // Should redirect back with error in session
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        
+        // Assert that the status is still pending
+        $this->assertEquals('pending', $pendingRes->fresh()->status);
+    }
 }

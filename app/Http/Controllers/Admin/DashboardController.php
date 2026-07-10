@@ -41,6 +41,22 @@ class DashboardController extends Controller
     {
         $reservation = Reservation::findOrFail($id);
 
+        $jamMulai = \Illuminate\Support\Carbon::parse($reservation->jam_mulai)->format('H:i:00');
+        $jamSelesai = \Illuminate\Support\Carbon::parse($reservation->jam_selesai)->format('H:i:00');
+
+        // Check if there is an overlapping reservation that is already approved
+        $overlap = Reservation::where('room_id', $reservation->room_id)
+            ->where('tanggal', $reservation->tanggal)
+            ->where('status', 'approved')
+            ->where('id', '!=', $reservation->id)
+            ->where('jam_mulai', '<', $jamSelesai)
+            ->where('jam_selesai', '>', $jamMulai)
+            ->exists();
+
+        if ($overlap) {
+            return redirect()->back()->with('error', 'Reservasi ini tidak dapat disetujui karena bentrok dengan reservasi lain yang sudah disetujui.');
+        }
+
         $reservation->update([
             'status' => 'approved',
             'approved_by' => auth()->id(),
