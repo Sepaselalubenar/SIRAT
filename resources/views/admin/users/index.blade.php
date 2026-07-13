@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Pengguna (Dosen)')
+@section('title', 'Manajemen Pengguna (Dosen & Pegawai)')
 
 @section('content')
 <div class="space-y-6">
@@ -9,14 +9,14 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Manajemen Pengguna</h1>
-            <p class="text-gray-500 mt-1 text-sm">Kelola akun dosen yang dapat mengakses sistem reservasi.</p>
+            <p class="text-gray-500 mt-1 text-sm">Kelola akun dosen dan pegawai yang dapat mengakses sistem reservasi.</p>
         </div>
         <button type="button" onclick="openCreateModal()"
             class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-3 rounded-xl transition cursor-pointer shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            + Tambah Dosen
+            + Tambah Pengguna
         </button>
     </div>
 
@@ -80,7 +80,12 @@
                                     <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </div>
-                                    <span class="font-semibold text-gray-800">{{ $user->name }}</span>
+                                    <div>
+                                        <span class="font-semibold text-gray-800">{{ $user->name }}</span>
+                                        <span class="ml-2 px-2 py-0.5 text-[10px] font-semibold rounded-full {{ $user->role === 'dosen' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-amber-50 text-amber-700 border border-amber-100' }}">
+                                            {{ ucfirst($user->role) }}
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-gray-600">{{ $user->email }}</td>
@@ -131,7 +136,7 @@
                                 <svg class="mx-auto h-10 w-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <p class="text-gray-400 font-medium">Tidak ada akun dosen ditemukan.</p>
+                                <p class="text-gray-400 font-medium">Tidak ada akun pengguna ditemukan.</p>
                                 @if(request('search'))
                                     <p class="text-gray-300 text-xs mt-1">Coba ubah kata kunci pencarian.</p>
                                 @endif
@@ -152,16 +157,16 @@
 
     {{-- Summary --}}
     <p class="text-xs text-gray-400 text-right">
-        Menampilkan {{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} dosen terdaftar
+        Menampilkan {{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} pengguna terdaftar
     </p>
 
 </div>
 
-{{-- ===== Modal Tambah Dosen ===== --}}
+{{-- ===== Modal Tambah Pengguna ===== --}}
 <div id="modal-create" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg">
         <div class="flex items-center justify-between p-6 border-b">
-            <h3 class="text-lg font-bold text-gray-800">Tambah Akun Dosen</h3>
+            <h3 class="text-lg font-bold text-gray-800">Tambah Akun Pengguna</h3>
             <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 cursor-pointer text-2xl font-bold">&times;</button>
         </div>
         <form action="{{ route('admin.users.store') }}" method="POST" class="p-6 space-y-4">
@@ -171,7 +176,15 @@
                 <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <span>Dosen masuk menggunakan <strong class="font-bold">NIP + Email</strong> tanpa password. Tidak perlu mengatur password.</span>
+                <span>Pengguna masuk menggunakan <strong class="font-bold">NIP + Email</strong> tanpa password. Tidak perlu mengatur password.</span>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Role <span class="text-red-500">*</span></label>
+                <select name="role" required class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="dosen" {{ old('role') === 'dosen' ? 'selected' : '' }}>Dosen</option>
+                    <option value="pegawai" {{ old('role') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                </select>
+                @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
@@ -211,16 +224,23 @@
     </div>
 </div>
 
-{{-- ===== Modal Edit Dosen ===== --}}
+{{-- ===== Modal Edit Pengguna ===== --}}
 <div id="modal-edit" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg">
         <div class="flex items-center justify-between p-6 border-b">
-            <h3 class="text-lg font-bold text-gray-800">Edit Akun Dosen</h3>
+            <h3 class="text-lg font-bold text-gray-800">Edit Akun Pengguna</h3>
             <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 cursor-pointer text-2xl font-bold">&times;</button>
         </div>
         <form id="edit-form" method="POST" class="p-6 space-y-4">
             @csrf
             @method('PUT')
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Role <span class="text-red-500">*</span></label>
+                <select name="role" id="edit-role" required class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="dosen">Dosen</option>
+                    <option value="pegawai">Pegawai</option>
+                </select>
+            </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" id="edit-name" required
@@ -270,6 +290,7 @@
         document.getElementById('edit-email').value = user.email;
         document.getElementById('edit-nip').value   = user.nip ?? '';
         document.getElementById('edit-phone_number').value = user.phone_number ?? '';
+        document.getElementById('edit-role').value  = user.role;
         document.getElementById('edit-form').action = `/admin/users/${user.id}`;
         document.getElementById('modal-edit').classList.remove('hidden');
         document.body.style.overflow = 'hidden';

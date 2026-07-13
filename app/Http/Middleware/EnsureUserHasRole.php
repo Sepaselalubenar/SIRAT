@@ -13,16 +13,16 @@ class EnsureUserHasRole
      *
      * Pemakaian di routes: ->middleware('role:admin') atau ->middleware('role:dosen')
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $user = $request->user();
-        $loginRoute = $role === 'admin' ? 'admin.login' : 'login';
+        $loginRoute = in_array('admin', $roles) ? 'admin.login' : 'login';
 
         if (! $user) {
             return redirect()->route($loginRoute);
         }
 
-        if ($user->role !== $role) {
+        if (! in_array($user->role, $roles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman tersebut.');
         }
 

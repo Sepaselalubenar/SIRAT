@@ -46,5 +46,14 @@ class UserSeeder extends Seeder
             'nip' => '654321',
             'phone_number' => '082198765432',
         ]);
+
+        User::create([
+            'name' => 'Budi Santoso',
+            'email' => 'budi.santoso@telkomuniversity.ac.id',
+            'password' => null,
+            'role' => 'pegawai',
+            'nip' => '789012',
+            'phone_number' => '081298765432',
+        ]);
     }
 }

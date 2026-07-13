@@ -7,7 +7,7 @@
     <!-- Header Section -->
     <div>
         <h1 class="text-3xl font-bold text-gray-800">Semua Data Reservasi</h1>
-        <p class="text-gray-500 mt-1">Lihat dan kelola seluruh riwayat reservasi ruangan oleh dosen.</p>
+        <p class="text-gray-500 mt-1">Lihat dan kelola seluruh riwayat reservasi ruangan oleh dosen/pegawai.</p>
     </div>
 
     <!-- Alert Success -->
@@ -148,7 +148,7 @@
                             </td>
                             <td class="py-4 px-6">
                                 <span class="font-medium text-gray-900">{{ $reservation->user->name ?? '-' }}</span>
-                                <span class="block text-xs text-gray-400">{{ $reservation->user->nip ? 'NIP: ' . $reservation->user->nip : 'Admin' }}</span>
+                                <span class="block text-xs text-gray-400">{{ $reservation->user->nip ? ucfirst($reservation->user->role) . ' (NIP: ' . $reservation->user->nip . ')' : 'Admin' }}</span>
                             </td>
                             <td class="py-4 px-6 text-gray-500">
                                 {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB
@@ -245,7 +245,7 @@
 
         <form id="form-cancel" method="POST" class="p-6 space-y-4">
             @csrf
-            <p class="text-sm text-gray-600">Pembatalan akan mengubah status reservasi menjadi <strong class="text-amber-700">Dibatalkan</strong> dan mengirim email notifikasi ke dosen.</p>
+            <p class="text-sm text-gray-600">Pembatalan akan mengubah status reservasi menjadi <strong class="text-amber-700">Dibatalkan</strong> dan mengirim email notifikasi ke pengguna.</p>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Alasan Pembatalan <span class="text-red-500">*</span></label>
                 <textarea

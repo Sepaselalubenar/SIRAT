@@ -217,7 +217,7 @@
                         </div>
                         <div class="hidden sm:block">
                             <p class="font-semibold text-gray-800 text-sm leading-tight">{{ auth()->user()->name }}</p>
-                            <p class="text-gray-500 text-xs mt-0.5">Dosen</p>
+                            <p class="text-gray-500 text-xs mt-0.5">{{ auth()->user()->role === 'pegawai' ? 'Pegawai' : 'Dosen' }}</p>
                         </div>
                     </div>
                 </div>

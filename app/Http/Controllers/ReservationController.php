@@ -103,7 +103,7 @@ class ReservationController extends Controller
 
             // Pastikan ruangan kosong
             try {
-                $this->pastikanRuanganKosong($room->id, $date, $jamMulai, $jamSelesai);
+                $this->pastikanRuanganKosong($room, $date, $jamMulai, $jamSelesai);
             } catch (ValidationException $e) {
                 $bentrokDates[] = Carbon::parse($date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
             }
@@ -197,11 +197,16 @@ class ReservationController extends Controller
      * Ruangan yang sama tidak boleh dipesan di jam yang tumpang tindih pada tanggal yang sama.
      * Dua rentang waktu dianggap bentrok kalau: mulaiA < selesaiB DAN selesaiA > mulaiB.
      */
-    private function pastikanRuanganKosong(int $roomId, string $tanggal, Carbon $jamMulai, Carbon $jamSelesai): void
+    private function pastikanRuanganKosong(Room $room, string $tanggal, Carbon $jamMulai, Carbon $jamSelesai): void
     {
-        $bentrok = Reservation::where('room_id', $roomId)
+        $statuses = ['pending', 'approved'];
+        if ((string) $room->lantai === self::LANTAI_APPROVAL) {
+            $statuses = ['approved'];
+        }
+
+        $bentrok = Reservation::where('room_id', $room->id)
             ->where('tanggal', $tanggal)
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', $statuses)
             ->where('jam_mulai', '<', $jamSelesai->format('H:i:00'))
             ->where('jam_selesai', '>', $jamMulai->format('H:i:00'))
             ->exists();

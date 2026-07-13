@@ -28,7 +28,7 @@ class DosenLoginController extends Controller
             'email' => 'required|email',
         ]);
 
-        $user = User::where('role', 'dosen')
+        $user = User::whereIn('role', ['dosen', 'pegawai'])
             ->where('nip', $credentials['nip'])
             ->where('email', $credentials['email'])
             ->first();

@@ -614,4 +614,100 @@ class ReservationTest extends TestCase
         // 21 days has 3 Sundays, so 21 - 3 = 18 reservations should be created
         $this->assertDatabaseCount('reservations', 18);
     }
+
+    public function test_lecturer_can_make_overlapping_reservations_if_existing_is_pending_on_floor_19()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L19',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '19',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::now()->addDays(2)->toDateString();
+
+        // Create a pending reservation
+        Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Pending Meeting',
+            'status' => 'pending',
+        ]);
+
+        // Make overlapping reservation - should succeed
+        $response = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '11:00',
+            'tujuan' => 'Another Meeting',
+        ]);
+
+        $response->assertRedirect('/history');
+        $this->assertDatabaseHas('reservations', [
+            'room_id' => $room->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '11:00',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_pegawai_can_login_and_make_reservation()
+    {
+        // 1. Create a pegawai user
+        $pegawai = User::create([
+            'name' => 'Pegawai Test',
+            'email' => 'pegawai@test.com',
+            'role' => 'pegawai',
+            'nip' => '87654321',
+        ]);
+
+        // 2. Try logging in through DosenLoginController (NIP + email login)
+        $responseLogin = $this->post('/login', [
+            'nip' => '87654321',
+            'email' => 'pegawai@test.com',
+        ]);
+        $responseLogin->assertRedirect('/dashboard');
+        $this->assertAuthenticatedAs($pegawai);
+
+        // 3. Make reservation
+        $room = Room::create([
+            'nama' => 'Ruang C',
+            'jenis' => 'Ruang Rapat',
+            'lantai' => '3',
+            'kapasitas' => 15,
+            'status' => 'tersedia',
+        ]);
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        $responseReserve = $this->actingAs($pegawai)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '12:00',
+            'tujuan' => 'Rapat Pegawai Bulanan',
+        ]);
+
+        $responseReserve->assertRedirect('/history');
+        $this->assertDatabaseHas('reservations', [
+            'user_id' => $pegawai->id,
+            'room_id' => $room->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '12:00',
+            'status' => 'approved',
+        ]);
+    }
 }

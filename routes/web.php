@@ -34,7 +34,7 @@ Route::post('/admin/logout', [AdminLoginController::class, 'destroy'])->name('ad
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:dosen'])->group(function () {
+Route::middleware(['auth', 'role:dosen,pegawai'])->group(function () {
     Route::get('/dashboard', [LecturerDashboardController::class, 'index']);
 
     Route::get('/history', [HistoryController::class, 'index']);

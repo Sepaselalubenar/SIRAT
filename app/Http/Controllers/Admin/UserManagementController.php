@@ -10,7 +10,7 @@ class UserManagementController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 'dosen')->withCount('reservations');
+        $query = User::whereIn('role', ['dosen', 'pegawai'])->withCount('reservations');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -34,11 +34,14 @@ class UserManagementController extends Controller
             'email'        => 'required|email|unique:users,email',
             'nip'          => 'nullable|string|max:20|unique:users,nip',
             'phone_number' => 'nullable|string|max:20',
+            'role'         => 'required|string|in:dosen,pegawai',
         ], [
-            'name.required'  => 'Nama dosen wajib diisi.',
+            'name.required'  => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique'   => 'Email sudah digunakan.',
             'nip.unique'     => 'NIP sudah terdaftar.',
+            'role.required'  => 'Role wajib dipilih.',
+            'role.in'        => 'Role tidak valid.',
         ]);
 
         User::create([
@@ -46,10 +49,10 @@ class UserManagementController extends Controller
             'email'        => $validated['email'],
             'nip'          => $validated['nip'] ?? null,
             'phone_number' => $validated['phone_number'] ?? null,
-            'role'         => 'dosen',
+            'role'         => $validated['role'],
         ]);
 
-        return redirect()->back()->with('success', 'Akun dosen berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Akun ' . ucfirst($validated['role']) . ' berhasil ditambahkan.');
     }
 
     public function update(Request $request, User $user)
@@ -59,11 +62,14 @@ class UserManagementController extends Controller
             'email'        => 'required|email|unique:users,email,' . $user->id,
             'nip'          => 'nullable|string|max:20|unique:users,nip,' . $user->id,
             'phone_number' => 'nullable|string|max:20',
+            'role'         => 'required|string|in:dosen,pegawai',
         ], [
-            'name.required'  => 'Nama dosen wajib diisi.',
+            'name.required'  => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique'   => 'Email sudah digunakan.',
             'nip.unique'     => 'NIP sudah terdaftar.',
+            'role.required'  => 'Role wajib dipilih.',
+            'role.in'        => 'Role tidak valid.',
         ]);
 
         $user->update([
@@ -71,9 +77,10 @@ class UserManagementController extends Controller
             'email'        => $validated['email'],
             'nip'          => $validated['nip'] ?? null,
             'phone_number' => $validated['phone_number'] ?? null,
+            'role'         => $validated['role'],
         ]);
 
-        return redirect()->back()->with('success', 'Data dosen berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Data ' . ucfirst($user->role) . ' berhasil diperbarui.');
     }
 
     public function destroy(User $user)
@@ -82,10 +89,12 @@ class UserManagementController extends Controller
             return redirect()->back()->with('error', 'Tidak dapat menghapus akun admin.');
         }
 
+        $roleName = ucfirst($user->role);
+
         // Delete all associated reservations first
         $user->reservations()->delete();
         $user->delete();
 
-        return redirect()->back()->with('success', 'Akun dosen berhasil dihapus.');
+        return redirect()->back()->with('success', 'Akun ' . $roleName . ' berhasil dihapus.');
     }
 }
