@@ -95,10 +95,10 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('l, d M Y') }}
                         &middot; {{ $reservation->tujuan }}
                         &middot; <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">{{ substr($reservation->jam_mulai, 0, 5) }} - {{ substr($reservation->jam_selesai, 0, 5) }}</span>
-                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
+                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('l, d M Y H:i') }} WIB</span>
                     </p>
                     @if($reservation->keterangan)
                         <p class="text-xs text-gray-400 mt-1 italic">Catatan: "{{ $reservation->keterangan }}"</p>
@@ -142,9 +142,9 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('l, d M Y') }}
                         &middot; {{ $reservation->tujuan }}
-                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
+                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('l, d M Y H:i') }} WIB</span>
                     </p>
                 </div>
 

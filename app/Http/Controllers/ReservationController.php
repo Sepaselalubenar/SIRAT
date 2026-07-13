@@ -148,7 +148,7 @@ class ReservationController extends Controller
 
         if (now()->parse($tanggal)->lt($minimalTanggal)) {
             throw ValidationException::withMessages([
-                'tanggal' => 'Untuk ruangan ini, reservasi minimal H+' . self::MIN_HARI_LANTAI_APPROVAL . ' (hari ini ' . now()->translatedFormat('d F Y') . ', bisa reservasi mulai ' . $minimalTanggal->translatedFormat('d F Y') . ').',
+                'tanggal' => 'Untuk ruangan ini, reservasi minimal H+' . self::MIN_HARI_LANTAI_APPROVAL . ' (hari ini ' . now()->translatedFormat('l, d F Y') . ', bisa reservasi mulai ' . $minimalTanggal->translatedFormat('l, d F Y') . ').',
             ]);
         }
     }
