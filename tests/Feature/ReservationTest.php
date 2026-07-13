@@ -417,4 +417,201 @@ class ReservationTest extends TestCase
         ]);
         $responseReserve->assertStatus(403);
     }
+
+    public function test_lecturer_can_make_full_day_multi_day_reservation_successfully()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        // Next Monday is always a weekday, avoiding past time checks and Sundays
+        $start = Carbon::parse('next monday');
+        $end = $start->copy()->addDays(2); // Monday, Tuesday, Wednesday (3 days)
+
+        $response = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => $start->toDateString(),
+            'tanggal_selesai' => $end->toDateString(),
+            'tujuan' => 'Rapat Multi Hari',
+            'keterangan' => 'Keterangan rapat',
+        ]);
+
+        $response->assertRedirect('/history');
+        
+        // Assert 3 reservations are created
+        $this->assertDatabaseCount('reservations', 3);
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $this->assertDatabaseHas('reservations', [
+                'user_id' => $dosen->id,
+                'room_id' => $room->id,
+                'tanggal' => $d->toDateString(),
+                'jam_mulai' => '07:00',
+                'jam_selesai' => '18:30',
+                'status' => 'approved',
+            ]);
+        }
+    }
+
+    public function test_lecturer_cannot_make_single_day_reservation_on_sunday()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $sunday = Carbon::parse('next sunday')->toDateString();
+
+        $response = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'biasa',
+            'tanggal' => $sunday,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat Hari Minggu',
+        ]);
+
+        $response->assertSessionHasErrors(['tanggal']);
+    }
+
+    public function test_lecturer_multi_day_reservation_skips_sundays()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $saturday = Carbon::parse('next saturday');
+        $monday = $saturday->copy()->addDays(2); // Saturday, Sunday, Monday (3 days)
+
+        $response = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => $saturday->toDateString(),
+            'tanggal_selesai' => $monday->toDateString(),
+            'tujuan' => 'Rapat Akhir Pekan',
+        ]);
+
+        $response->assertRedirect('/history');
+
+        // Assert only Saturday and Monday are created (Sunday skipped)
+        $this->assertDatabaseCount('reservations', 2);
+        $this->assertDatabaseHas('reservations', [
+            'tanggal' => $saturday->toDateString(),
+            'jam_mulai' => '07:00',
+        ]);
+        $this->assertDatabaseHas('reservations', [
+            'tanggal' => $monday->toDateString(),
+            'jam_mulai' => '07:00',
+        ]);
+        $this->assertDatabaseMissing('reservations', [
+            'tanggal' => $saturday->copy()->addDay()->toDateString(), // Sunday
+        ]);
+    }
+
+    public function test_lecturer_reservation_limits()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $start = Carbon::parse('next monday');
+        $end = $start->copy()->addDays(15); // 16 days
+
+        $response = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => $start->toDateString(),
+            'tanggal_selesai' => $end->toDateString(),
+            'tujuan' => 'Rapat Panjang',
+        ]);
+
+        $response->assertSessionHasErrors(['tanggal_selesai']);
+    }
+
+    public function test_admin_can_make_full_day_multi_day_reservation_without_limits()
+    {
+        $admin = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@test.com',
+            'role' => 'admin',
+            'admin_type' => 1,
+            'password' => bcrypt('password'),
+        ]);
+
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $start = Carbon::parse('next monday');
+        $end = $start->copy()->addDays(20); // 21 days range
+
+        $response = $this->actingAs($admin)->post('/admin/rooms/reserve', [
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => $start->toDateString(),
+            'tanggal_selesai' => $end->toDateString(),
+            'tujuan' => 'Rapat Admin Panjang',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        // 21 days has 3 Sundays, so 21 - 3 = 18 reservations should be created
+        $this->assertDatabaseCount('reservations', 18);
+    }
 }

@@ -28,11 +28,31 @@
                 <p class="text-xs text-gray-400 mt-1">Pilih dosen yang akan menggunakan ruangan tersebut.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Tipe Reservasi -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Reservasi *</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-blue-600 bg-blue-50/50" id="admin-tipe-biasa-label">
+                        <input type="radio" name="tipe_reservasi" value="biasa" checked class="sr-only" id="admin-radio-tipe-biasa">
+                        <span class="text-lg mb-1">⏰</span>
+                        <span class="text-xs font-semibold text-gray-800">Jam Spesifik</span>
+                        <span class="text-[10px] text-gray-500">Pilih jam tertentu</span>
+                    </label>
+                    <label class="border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-gray-200" id="admin-tipe-sehari-penuh-label">
+                        <input type="radio" name="tipe_reservasi" value="sehari_penuh" class="sr-only" id="admin-radio-tipe-sehari-penuh">
+                        <span class="text-lg mb-1">📅</span>
+                        <span class="text-xs font-semibold text-gray-800">Sehari Penuh</span>
+                        <span class="text-[10px] text-gray-500">Satu/beberapa hari</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Jam Spesifik Inputs -->
+            <div id="admin-container-biasa" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Tanggal -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Reservasi *</label>
-                    <input type="date" name="tanggal" required min="{{ now()->toDateString() }}" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="date" name="tanggal" id="admin-input-tanggal" required min="{{ now()->toDateString() }}" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <!-- Jam Mulai -->
@@ -46,6 +66,21 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Jam Selesai *</label>
                     <input type="time" name="jam_selesai" required min="07:00" max="18:30" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
+            </div>
+
+            <!-- Sehari Penuh (Multi-Hari) Inputs -->
+            <div id="admin-container-range" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai *</label>
+                        <input type="date" name="tanggal_mulai" id="admin-input-tanggal-mulai" min="{{ now()->toDateString() }}" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Selesai *</label>
+                        <input type="date" name="tanggal_selesai" id="admin-input-tanggal-selesai" min="{{ now()->toDateString() }}" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400">Durasi: Sehari penuh (07:00 - 18:30) per hari. Hari Minggu tutup.</p>
             </div>
 
             <!-- Tujuan -->
@@ -78,3 +113,94 @@
         </form>
     </div>
 </div>
+
+<script>
+    (function() {
+        const radioBiasa = document.getElementById('admin-radio-tipe-biasa');
+        const radioSehari = document.getElementById('admin-radio-tipe-sehari-penuh');
+        const labelBiasa = document.getElementById('admin-tipe-biasa-label');
+        const labelSehari = document.getElementById('admin-tipe-sehari-penuh-label');
+
+        const containerBiasa = document.getElementById('admin-container-biasa');
+        const containerRange = document.getElementById('admin-container-range');
+
+        const inputTanggal = document.getElementById('admin-input-tanggal');
+        const inputJamMulai = document.querySelector('input[name="jam_mulai"]');
+        const inputJamSelesai = document.querySelector('input[name="jam_selesai"]');
+        const inputTanggalMulai = document.getElementById('admin-input-tanggal-mulai');
+        const inputTanggalSelesai = document.getElementById('admin-input-tanggal-selesai');
+
+        function toggleAdminTipe() {
+            if (!radioBiasa || !radioSehari) return;
+            if (radioBiasa.checked) {
+                labelBiasa.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-blue-600 bg-blue-50/50";
+                labelSehari.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-gray-200";
+
+                containerBiasa.classList.remove('hidden');
+                containerRange.classList.add('hidden');
+
+                inputTanggal.setAttribute('required', 'required');
+                inputJamMulai.setAttribute('required', 'required');
+                inputJamSelesai.setAttribute('required', 'required');
+
+                inputTanggalMulai.removeAttribute('required');
+                inputTanggalSelesai.removeAttribute('required');
+            } else {
+                labelBiasa.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-gray-200";
+                labelSehari.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-blue-600 bg-blue-50/50";
+
+                containerBiasa.classList.add('hidden');
+                containerRange.classList.remove('hidden');
+
+                inputTanggal.removeAttribute('required');
+                inputJamMulai.removeAttribute('required');
+                inputJamSelesai.removeAttribute('required');
+
+                inputTanggalMulai.setAttribute('required', 'required');
+                inputTanggalSelesai.setAttribute('required', 'required');
+            }
+        }
+
+        if (radioBiasa && radioSehari) {
+            radioBiasa.addEventListener('change', toggleAdminTipe);
+            radioSehari.addEventListener('change', toggleAdminTipe);
+            toggleAdminTipe();
+        }
+
+        // Handle client-side Sunday validation for admin range and single date inputs
+        const form = document.querySelector('#modal-reserve form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (radioSehari.checked) {
+                    const tglMulai = inputTanggalMulai.value;
+                    const tglSelesai = inputTanggalSelesai.value;
+                    if (tglMulai && tglSelesai) {
+                        let tempDate = new Date(tglMulai + 'T00:00:00');
+                        let endDate = new Date(tglSelesai + 'T00:00:00');
+                        let hasSunday = false;
+                        while (tempDate <= endDate) {
+                            if (tempDate.getDay() === 0) {
+                                hasSunday = true;
+                                break;
+                            }
+                            tempDate.setDate(tempDate.getDate() + 1);
+                        }
+                        if (hasSunday) {
+                            alert('Pemesanan ditutup untuk hari Minggu. Silakan sesuaikan rentang tanggal Anda.');
+                            e.preventDefault();
+                        }
+                    }
+                } else {
+                    const tglVal = inputTanggal.value;
+                    if (tglVal) {
+                        const tglCheck = new Date(tglVal + 'T00:00:00');
+                        if (tglCheck.getDay() === 0) {
+                            alert('Pemesanan ditutup untuk hari Minggu.');
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
+        }
+    })();
+</script>

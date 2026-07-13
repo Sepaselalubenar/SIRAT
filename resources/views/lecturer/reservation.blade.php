@@ -186,66 +186,114 @@
                             <p class="text-gray-500 text-sm" id="ringkasan-lantai-ruangan"></p>
                         </div>
 
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+                        @php
+                            $oldTipe = old('tipe_reservasi', 'biasa');
+                        @endphp
 
-                        <div class="border rounded-lg p-3 mb-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <button type="button" id="cal-prev" class="px-2 py-1 rounded hover:bg-gray-100">&lsaquo;</button>
-                                <span id="cal-label" class="font-semibold text-sm"></span>
-                                <button type="button" id="cal-next" class="px-2 py-1 rounded hover:bg-gray-100">&rsaquo;</button>
-                            </div>
-                            <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-1">
-                                <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
-                            </div>
-                            <div class="grid grid-cols-7 gap-1 text-center text-sm" id="cal-grid"></div>
-
-                            <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
-                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Ada reservasi</span>
-                            </div>
-
-                            <div id="cal-booked-info" class="hidden bg-yellow-50 text-yellow-700 text-xs rounded-lg p-2 mt-2"></div>
-                        </div>
-
-                        <input type="hidden" name="tanggal" id="input-tanggal" value="{{ old('tanggal') }}">
-                        @error('tanggal')
-                            <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
-                        @enderror
-
-                        <div class="grid grid-cols-2 gap-3 mt-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
-                                <input
-                                    type="time"
-                                    name="jam_mulai"
-                                    id="input-jam-mulai"
-                                    value="{{ old('jam_mulai') }}"
-                                    min="07:00"
-                                    max="18:30"
-                                    class="w-full border rounded-lg p-3"
-                                >
-                                @error('jam_mulai')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
-                                <input
-                                    type="time"
-                                    name="jam_selesai"
-                                    id="input-jam-selesai"
-                                    value="{{ old('jam_selesai') }}"
-                                    min="07:00"
-                                    max="18:30"
-                                    class="w-full border rounded-lg p-3"
-                                >
-                                @error('jam_selesai')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                        <!-- Tipe Reservasi -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Reservasi</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 {{ $oldTipe === 'biasa' ? 'border-blue-600 bg-blue-50/50' : 'border-gray-200' }}" id="tipe-biasa-label">
+                                    <input type="radio" name="tipe_reservasi" value="biasa" @checked($oldTipe === 'biasa') class="sr-only" id="radio-tipe-biasa">
+                                    <span class="text-lg mb-1">⏰</span>
+                                    <span class="text-xs font-semibold text-gray-800">Jam Spesifik</span>
+                                    <span class="text-[10px] text-gray-500">Pilih jam tertentu</span>
+                                </label>
+                                <label class="border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 {{ $oldTipe === 'sehari_penuh' ? 'border-blue-600 bg-blue-50/50' : 'border-gray-200' }}" id="tipe-sehari-penuh-label">
+                                    <input type="radio" name="tipe_reservasi" value="sehari_penuh" @checked($oldTipe === 'sehari_penuh') class="sr-only" id="radio-tipe-sehari-penuh">
+                                    <span class="text-lg mb-1">📅</span>
+                                    <span class="text-xs font-semibold text-gray-800">Sehari Penuh</span>
+                                    <span class="text-[10px] text-gray-500">Satu/beberapa hari</span>
+                                </label>
                             </div>
                         </div>
 
-                        <p class="text-gray-400 text-xs mt-2">Jam operasional gedung: 07.00 - 18.30</p>
+                        <!-- Rentang Tanggal (Sehari Penuh) -->
+                        <div id="container-tanggal-range" class="{{ $oldTipe === 'sehari_penuh' ? '' : 'hidden' }} space-y-3 mb-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                                    <input type="date" name="tanggal_mulai" id="input-tanggal-mulai" value="{{ old('tanggal_mulai') }}" class="w-full border rounded-lg p-3 text-sm" min="{{ now()->toDateString() }}">
+                                    @error('tanggal_mulai')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
+                                    <input type="date" name="tanggal_selesai" id="input-tanggal-selesai" value="{{ old('tanggal_selesai') }}" class="w-full border rounded-lg p-3 text-sm" min="{{ now()->toDateString() }}">
+                                    @error('tanggal_selesai')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400">Durasi: Sehari penuh (07:00 - 18:30) per hari. Maksimal 14 hari. Hari Minggu tutup.</p>
+                        </div>
+
+                        <div id="container-tanggal-biasa" class="{{ $oldTipe === 'sehari_penuh' ? 'hidden' : '' }} mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+
+                            <div class="border rounded-lg p-3 mb-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <button type="button" id="cal-prev" class="px-2 py-1 rounded hover:bg-gray-100">&lsaquo;</button>
+                                    <span id="cal-label" class="font-semibold text-sm"></span>
+                                    <button type="button" id="cal-next" class="px-2 py-1 rounded hover:bg-gray-100">&rsaquo;</button>
+                                </div>
+                                <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-400 mb-1">
+                                    <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                                </div>
+                                <div class="grid grid-cols-7 gap-1 text-center text-sm" id="cal-grid"></div>
+
+                                <div class="flex items-center gap-3 text-xs text-gray-500 mt-2">
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Ada reservasi</span>
+                                </div>
+
+                                <div id="cal-booked-info" class="hidden bg-yellow-50 text-yellow-700 text-xs rounded-lg p-2 mt-2"></div>
+                            </div>
+
+                            <input type="hidden" name="tanggal" id="input-tanggal" value="{{ old('tanggal') }}">
+                            @error('tanggal')
+                                <p class="text-red-500 text-xs mb-3">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="container-jam-biasa" class="{{ $oldTipe === 'sehari_penuh' ? 'hidden' : '' }}">
+                            <div class="grid grid-cols-2 gap-3 mt-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
+                                    <input
+                                        type="time"
+                                        name="jam_mulai"
+                                        id="input-jam-mulai"
+                                        value="{{ old('jam_mulai') }}"
+                                        min="07:00"
+                                        max="18:30"
+                                        class="w-full border rounded-lg p-3"
+                                    >
+                                    @error('jam_mulai')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
+                                    <input
+                                        type="time"
+                                        name="jam_selesai"
+                                        id="input-jam-selesai"
+                                        value="{{ old('jam_selesai') }}"
+                                        min="07:00"
+                                        max="18:30"
+                                        class="w-full border rounded-lg p-3"
+                                    >
+                                    @error('jam_selesai')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <p class="text-gray-400 text-xs mt-2">Jam operasional gedung: 07.00 - 18.30</p>
+                        </div>
 
                         <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Tujuan Reservasi <span id="tujuan-required-star" class="hidden text-red-500">*</span></label>
                         <div id="container-tujuan-select">
@@ -588,7 +636,8 @@ let currentSelectedRoom = null;
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = toDateStr(calYear, calMonth, day);
             const cellDate = new Date(calYear, calMonth, day);
-            const disabled = cellDate < minDate;
+            const isSunday = cellDate.getDay() === 0;
+            const disabled = cellDate < minDate || isSunday;
             const isBooked = bookedDates.includes(dateStr);
             const isSelected = dateStr === selectedDate;
 
@@ -597,10 +646,10 @@ let currentSelectedRoom = null;
             cell.textContent = day;
             cell.className = 'py-2 rounded-lg relative ' +
                 (disabled
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : isSelected
-                        ? 'bg-blue-600 text-white font-semibold'
-                        : 'hover:bg-blue-50 text-gray-700');
+                     ? 'text-gray-300 cursor-not-allowed'
+                     : isSelected
+                         ? 'bg-blue-600 text-white font-semibold'
+                         : 'hover:bg-blue-50 text-gray-700');
 
             if (isBooked && !disabled) {
                 const dot = document.createElement('span');
@@ -610,18 +659,18 @@ let currentSelectedRoom = null;
 
             if (!disabled) {
                 cell.addEventListener('click', () => {
-                    selectedDate = dateStr;
-                    document.getElementById('input-tanggal').value = dateStr;
-                    renderCalendar(room);
+                     selectedDate = dateStr;
+                     document.getElementById('input-tanggal').value = dateStr;
+                     renderCalendar(room);
 
-                    const bookedToday = (room.booked || []).filter(b => b.tanggal === dateStr);
-                    if (bookedToday.length) {
-                        calBookedInfo.classList.remove('hidden');
-                        calBookedInfo.innerHTML = 'Jam yang sudah dipesan: ' +
-                            bookedToday.map(b => b.jam_mulai + '-' + b.jam_selesai).join(', ');
-                    } else {
-                        calBookedInfo.classList.add('hidden');
-                    }
+                     const bookedToday = (room.booked || []).filter(b => b.tanggal === dateStr);
+                     if (bookedToday.length) {
+                         calBookedInfo.classList.remove('hidden');
+                         calBookedInfo.innerHTML = 'Jam yang sudah dipesan: ' +
+                             bookedToday.map(b => b.jam_mulai + '-' + b.jam_selesai).join(', ');
+                     } else {
+                         calBookedInfo.classList.add('hidden');
+                     }
                 });
             }
 
@@ -640,6 +689,41 @@ let currentSelectedRoom = null;
         if (calMonth > 11) { calMonth = 0; calYear++; }
         renderCalendar(currentSelectedRoom);
     });
+
+    // ---------- Tipe Reservasi Toggle ----------
+    const radioBiasa = document.getElementById('radio-tipe-biasa');
+    const radioSehari = document.getElementById('radio-tipe-sehari-penuh');
+    const labelBiasa = document.getElementById('tipe-biasa-label');
+    const labelSehari = document.getElementById('tipe-sehari-penuh-label');
+
+    const containerBiasaTanggal = document.getElementById('container-tanggal-biasa');
+    const containerBiasaJam = document.getElementById('container-jam-biasa');
+    const containerRange = document.getElementById('container-tanggal-range');
+
+    function updateTipeReservasiUI() {
+        if (!radioBiasa || !radioSehari) return;
+        if (radioBiasa.checked) {
+            labelBiasa.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-blue-600 bg-blue-50/50";
+            labelSehari.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-gray-200";
+            
+            containerBiasaTanggal.classList.remove('hidden');
+            containerBiasaJam.classList.remove('hidden');
+            containerRange.classList.add('hidden');
+        } else {
+            labelBiasa.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-gray-200";
+            labelSehari.className = "border rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 border-blue-600 bg-blue-50/50";
+            
+            containerBiasaTanggal.classList.add('hidden');
+            containerBiasaJam.classList.add('hidden');
+            containerRange.classList.remove('hidden');
+        }
+    }
+
+    if (radioBiasa && radioSehari) {
+        radioBiasa.addEventListener('change', updateTipeReservasiUI);
+        radioSehari.addEventListener('change', updateTipeReservasiUI);
+        updateTipeReservasiUI();
+    }
 
     function selectRoom(room) {
         setupRoomDetails(room);
@@ -684,11 +768,26 @@ let currentSelectedRoom = null;
             inputKeterangan.setAttribute('name', 'keterangan');
         }
 
+        // Set min date range inputs
+        const minDate = minAllowedDate(room);
+        const minDateString = localDateString(minDate);
+        const inputMulai = document.getElementById('input-tanggal-mulai');
+        const inputSelesai = document.getElementById('input-tanggal-selesai');
+        if (inputMulai) {
+            inputMulai.min = minDateString;
+            inputMulai.value = '';
+        }
+        if (inputSelesai) {
+            inputSelesai.min = minDateString;
+            inputSelesai.value = '';
+        }
+
         currentSelectedRoom = room;
         const today = new Date();
         calYear = today.getFullYear();
         calMonth = today.getMonth();
-        selectedDate = document.getElementById('input-tanggal').value || null;
+        selectedDate = null;
+        document.getElementById('input-tanggal').value = '';
         calBookedInfo.classList.add('hidden');
         renderCalendar(room);
 
@@ -748,9 +847,10 @@ function currentTimeString(date) {
 
 function openConfirmModal() {
     const roomId    = document.getElementById('input-room-id').value;
-    const tanggal   = document.getElementById('input-tanggal').value;
-    const jamMulai  = document.getElementById('input-jam-mulai').value;
-    const jamSelesai= document.getElementById('input-jam-selesai').value;
+    const tipeReservasi = document.querySelector('input[name="tipe_reservasi"]:checked').value;
+    
+    let tanggalText = '';
+    let waktuText = '';
     
     const isFloor19 = currentSelectedRoom && String(currentSelectedRoom.lantai) === lantaiApproval;
     const tujuan    = isFloor19 
@@ -768,19 +868,80 @@ function openConfirmModal() {
         alert('Silakan pilih ruangan terlebih dahulu.');
         return;
     }
-    if (!tanggal) {
-        alert('Silakan pilih tanggal reservasi.');
-        return;
+
+    if (tipeReservasi === 'sehari_penuh') {
+        const tanggalMulai = document.getElementById('input-tanggal-mulai').value;
+        const tanggalSelesai = document.getElementById('input-tanggal-selesai').value;
+        if (!tanggalMulai || !tanggalSelesai) {
+            alert('Silakan isi tanggal mulai dan tanggal selesai.');
+            return;
+        }
+        if (new Date(tanggalSelesai) < new Date(tanggalMulai)) {
+            alert('Tanggal selesai tidak boleh sebelum tanggal mulai.');
+            return;
+        }
+        
+        // Sunday validation on frontend too!
+        let tempDate = new Date(tanggalMulai + 'T00:00:00');
+        let endDate = new Date(tanggalSelesai + 'T00:00:00');
+        let hasSunday = false;
+        while (tempDate <= endDate) {
+            if (tempDate.getDay() === 0) {
+                hasSunday = true;
+                break;
+            }
+            tempDate.setDate(tempDate.getDate() + 1);
+        }
+        if (hasSunday) {
+            alert('Pemesanan ditutup untuk hari Minggu. Silakan sesuaikan rentang tanggal Anda.');
+            return;
+        }
+
+        const diffDays = Math.ceil((new Date(tanggalSelesai) - new Date(tanggalMulai)) / (1000 * 60 * 60 * 24)) + 1;
+        if (diffDays > 14) {
+            alert('Reservasi sehari penuh maksimal dapat dilakukan untuk 14 hari sekaligus.');
+            return;
+        }
+
+        const tglM = new Date(tanggalMulai + 'T00:00:00');
+        const tglS = new Date(tanggalSelesai + 'T00:00:00');
+        const formattedMulai = tglM.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const formattedSelesai = tglS.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        
+        tanggalText = formattedMulai + ' s/d ' + formattedSelesai;
+        waktuText = '07:00 – 18:30 (Sehari Penuh)';
+    } else {
+        const tanggal   = document.getElementById('input-tanggal').value;
+        const jamMulai  = document.getElementById('input-jam-mulai').value;
+        const jamSelesai= document.getElementById('input-jam-selesai').value;
+
+        if (!tanggal) {
+            alert('Silakan pilih tanggal reservasi.');
+            return;
+        }
+        
+        // Sunday validation on frontend
+        const tglCheck = new Date(tanggal + 'T00:00:00');
+        if (tglCheck.getDay() === 0) {
+            alert('Pemesanan ditutup untuk hari Minggu.');
+            return;
+        }
+
+        if (!jamMulai || !jamSelesai) {
+            alert('Silakan isi jam mulai dan jam selesai.');
+            return;
+        }
+        const now = new Date();
+        if (tanggal === localDateString(now) && jamMulai <= currentTimeString(now)) {
+            alert('Jam mulai reservasi sudah lewat. Untuk reservasi hari ini, pilih jam setelah waktu sekarang.');
+            return;
+        }
+
+        const tgl = new Date(tanggal + 'T00:00:00');
+        tanggalText = tgl.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        waktuText = jamMulai + ' – ' + jamSelesai;
     }
-    if (!jamMulai || !jamSelesai) {
-        alert('Silakan isi jam mulai dan jam selesai.');
-        return;
-    }
-    const now = new Date();
-    if (tanggal === localDateString(now) && jamMulai <= currentTimeString(now)) {
-        alert('Jam mulai reservasi sudah lewat. Untuk reservasi hari ini, pilih jam setelah waktu sekarang.');
-        return;
-    }
+
     if (!tujuan) {
         if (isFloor19) {
             alert('Silakan isi tujuan reservasi.');
@@ -793,13 +954,8 @@ function openConfirmModal() {
     // Populate confirm modal
     document.getElementById('confirm-room-name').textContent = roomName;
     document.getElementById('confirm-room-info').innerHTML   = roomInfo;
-
-    const tgl = new Date(tanggal + 'T00:00:00');
-    const tglFormatted = tgl.toLocaleDateString('id-ID', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-    });
-    document.getElementById('confirm-tanggal').textContent = tglFormatted;
-    document.getElementById('confirm-waktu').textContent   = jamMulai + ' – ' + jamSelesai;
+    document.getElementById('confirm-tanggal').textContent = tanggalText;
+    document.getElementById('confirm-waktu').textContent   = waktuText;
     document.getElementById('confirm-tujuan').textContent  = tujuan;
 
     const ketRow = document.getElementById('confirm-keterangan-row');

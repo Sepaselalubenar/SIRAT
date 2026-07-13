@@ -180,59 +180,107 @@ class RoomManagementController extends Controller
 
     public function storeReservation(Request $request)
     {
-        $validated = $request->validate([
+        $tipeReservasi = $request->input('tipe_reservasi') ?: 'biasa';
+
+        $rules = [
             'room_id' => 'required|exists:rooms,id',
             'user_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date|after_or_equal:today',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i',
+            'tipe_reservasi' => 'nullable|in:biasa,sehari_penuh',
             'tujuan' => 'required|string|max:100',
             'keterangan' => 'nullable|string|max:200',
-        ]);
+        ];
+
+        if ($tipeReservasi === 'sehari_penuh') {
+            $rules['tanggal_mulai'] = 'required|date|after_or_equal:today';
+            $rules['tanggal_selesai'] = 'required|date|after_or_equal:tanggal_mulai';
+        } else {
+            $rules['tanggal'] = 'required|date|after_or_equal:today';
+            $rules['jam_mulai'] = 'required|date_format:H:i';
+            $rules['jam_selesai'] = 'required|date_format:H:i';
+        }
+
+        $validated = $request->validate($rules);
 
         $roomId = $validated['room_id'];
         $room = Room::findOrFail($roomId);
         $this->authorizeRoom($room);
+        $dates = [];
+        if ($tipeReservasi === 'sehari_penuh') {
+            $startDate = \Illuminate\Support\Carbon::parse($validated['tanggal_mulai']);
+            $endDate = \Illuminate\Support\Carbon::parse($validated['tanggal_selesai']);
 
-        $tanggal = $validated['tanggal'];
-        $jamMulai = \Illuminate\Support\Carbon::parse($validated['jam_mulai']);
-        $jamSelesai = \Illuminate\Support\Carbon::parse($validated['jam_selesai']);
+            for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
+                if ($d->isSunday()) {
+                    continue;
+                }
+                $dates[] = $d->toDateString();
+            }
+
+            if (empty($dates)) {
+                return redirect()->back()->withErrors(['tanggal_mulai' => 'Pemesanan ditutup untuk hari Minggu. Silakan sesuaikan rentang tanggal Anda.'])->withInput();
+            }
+
+            $jamMulai = \Illuminate\Support\Carbon::parse('07:00');
+            $jamSelesai = \Illuminate\Support\Carbon::parse('18:30');
+        } else {
+            $dateParsed = \Illuminate\Support\Carbon::parse($validated['tanggal']);
+            if ($dateParsed->isSunday()) {
+                return redirect()->back()->withErrors(['tanggal' => 'Pemesanan ditutup untuk hari Minggu.'])->withInput();
+            }
+            $dates[] = $dateParsed->toDateString();
+            $jamMulai = \Illuminate\Support\Carbon::parse($validated['jam_mulai']);
+            $jamSelesai = \Illuminate\Support\Carbon::parse($validated['jam_selesai']);
+        }
 
         if ($jamSelesai->lte($jamMulai)) {
             return redirect()->back()->withErrors(['jam_selesai' => 'Jam selesai harus setelah jam mulai.'])->withInput();
         }
 
-        $mulaiReservasi = \Illuminate\Support\Carbon::parse(
-            \Illuminate\Support\Carbon::parse($tanggal)->toDateString() . ' ' . $jamMulai->format('H:i')
-        );
+        // Validate each date
+        $bentrokDates = [];
+        foreach ($dates as $date) {
+            $mulaiReservasi = \Illuminate\Support\Carbon::parse(
+                \Illuminate\Support\Carbon::parse($date)->toDateString() . ' ' . $jamMulai->format('H:i')
+            );
 
-        if ($mulaiReservasi->lte(now())) {
-            return redirect()->back()->withErrors(['jam_mulai' => 'Jam mulai reservasi sudah lewat. Untuk reservasi hari ini, pilih jam setelah waktu sekarang.'])->withInput();
+            if ($mulaiReservasi->lte(now())) {
+                $errKey = ($tipeReservasi === 'sehari_penuh') ? 'tanggal_mulai' : 'jam_mulai';
+                return redirect()->back()->withErrors([$errKey => "Reservasi untuk tanggal {$date} tidak bisa diajukan karena jam mulainya sudah terlewat."])->withInput();
+            }
+
+            // Overlap check
+            $overlap = \App\Models\Reservation::where('room_id', $roomId)
+                ->where('tanggal', $date)
+                ->whereIn('status', ['pending', 'approved'])
+                ->where('jam_mulai', '<', $jamSelesai->format('H:i:00'))
+                ->where('jam_selesai', '>', $jamMulai->format('H:i:00'))
+                ->exists();
+
+            if ($overlap) {
+                $bentrokDates[] = \Illuminate\Support\Carbon::parse($date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+            }
         }
 
-        // Overlap check
-        $overlap = \App\Models\Reservation::where('room_id', $roomId)
-            ->where('tanggal', $tanggal)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where('jam_mulai', '<', $jamSelesai->format('H:i:00'))
-            ->where('jam_selesai', '>', $jamMulai->format('H:i:00'))
-            ->exists();
-
-        if ($overlap) {
-            return redirect()->back()->withErrors(['jam_mulai' => 'Ruangan ini sudah dipesan pada rentang jam tersebut oleh reservasi lain yang aktif.'])->withInput();
+        if (!empty($bentrokDates)) {
+            $errKey = ($tipeReservasi === 'sehari_penuh') ? 'tanggal_mulai' : 'jam_mulai';
+            return redirect()->back()->withErrors([$errKey => 'Ruangan tidak tersedia (sudah dipesan) pada hari berikut: ' . implode(', ', $bentrokDates) . '.'])->withInput();
         }
 
-        \App\Models\Reservation::create([
-            'room_id' => $roomId,
-            'user_id' => $validated['user_id'],
-            'tanggal' => $tanggal,
-            'jam_mulai' => $jamMulai->format('H:i'),
-            'jam_selesai' => $jamSelesai->format('H:i'),
-            'tujuan' => $validated['tujuan'],
-            'keterangan' => $validated['keterangan'] ?? null,
-            'status' => 'approved', // Admin booking is automatically approved
-            'approved_by' => auth()->id(),
-        ]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($roomId, $validated, $dates, $jamMulai, $jamSelesai) {
+            foreach ($dates as $date) {
+                \App\Models\Reservation::create([
+                    'room_id' => $roomId,
+                    'user_id' => $validated['user_id'],
+                    'tanggal' => $date,
+                    'jam_mulai' => $jamMulai->format('H:i'),
+                    'jam_selesai' => $jamSelesai->format('H:i'),
+                    'tujuan' => $validated['tujuan'],
+                    'keterangan' => $validated['keterangan'] ?? null,
+                    'status' => 'approved', // Admin booking is automatically approved
+                    'approved_by' => auth()->id(),
+                ]);
+            }
+        });
 
         return redirect()->back()->with('success', 'Reservasi ruangan berhasil dibuat langsung.');
     }

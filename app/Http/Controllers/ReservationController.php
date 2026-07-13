@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ReservationSuccessMail;
+use App\Mail\MultiDayReservationSuccessMail;
 use App\Models\Reservation;
 use App\Models\Room;
 use Illuminate\Http\Request;
@@ -26,52 +27,125 @@ class ReservationController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $tipeReservasi = $request->input('tipe_reservasi') ?: 'biasa';
+
+        $rules = [
             'room_id' => 'required|exists:rooms,id',
-            'tanggal' => 'required|date|after_or_equal:today',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i',
+            'tipe_reservasi' => 'nullable|in:biasa,sehari_penuh',
             'tujuan' => 'required|string|max:100',
             'keterangan' => 'nullable|string|max:200',
-        ]);
+        ];
+
+        if ($tipeReservasi === 'sehari_penuh') {
+            $rules['tanggal_mulai'] = 'required|date|after_or_equal:today';
+            $rules['tanggal_selesai'] = 'required|date|after_or_equal:tanggal_mulai';
+        } else {
+            $rules['tanggal'] = 'required|date|after_or_equal:today';
+            $rules['jam_mulai'] = 'required|date_format:H:i';
+            $rules['jam_selesai'] = 'required|date_format:H:i';
+        }
+
+        $data = $request->validate($rules);
 
         $user = Auth::user();
         $room = Room::findOrFail($data['room_id']);
-
-        $jamMulai = Carbon::parse($data['jam_mulai']);
-        $jamSelesai = Carbon::parse($data['jam_selesai']);
-
-        $this->pastikanDalamJamOperasional($jamMulai, $jamSelesai);
-        $this->pastikanJamMulaiBelumLewat($data['tanggal'], $jamMulai);
-        $this->pastikanRuanganKosong($room->id, $data['tanggal'], $jamMulai, $jamSelesai);
-
         $butuhApproval = (string) $room->lantai === self::LANTAI_APPROVAL;
+        $dates = [];
+        if ($tipeReservasi === 'sehari_penuh') {
+            $startDate = Carbon::parse($data['tanggal_mulai']);
+            $endDate = Carbon::parse($data['tanggal_selesai']);
 
-        if ($butuhApproval) {
-            $this->pastikanMinimalHPlus2($data['tanggal']);
+            if ($startDate->diffInDays($endDate) > 14) {
+                throw ValidationException::withMessages([
+                    'tanggal_selesai' => 'Reservasi sehari penuh maksimal dapat dilakukan untuk 14 hari sekaligus.',
+                ]);
+            }
+
+            for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
+                if ($d->isSunday()) {
+                    continue;
+                }
+                $dates[] = $d->toDateString();
+            }
+
+            if (empty($dates)) {
+                throw ValidationException::withMessages([
+                    'tanggal_mulai' => 'Pemesanan ditutup untuk hari Minggu. Silakan sesuaikan rentang tanggal Anda.',
+                ]);
+            }
+
+            $jamMulai = Carbon::parse(self::JAM_BUKA);
+            $jamSelesai = Carbon::parse(self::JAM_TUTUP);
+        } else {
+            $dateParsed = Carbon::parse($data['tanggal']);
+            if ($dateParsed->isSunday()) {
+                throw ValidationException::withMessages([
+                    'tanggal' => 'Pemesanan ditutup untuk hari Minggu.',
+                ]);
+            }
+            $dates[] = $dateParsed->toDateString();
+            $jamMulai = Carbon::parse($data['jam_mulai']);
+            $jamSelesai = Carbon::parse($data['jam_selesai']);
         }
 
-        $reservation = Reservation::create([
-            'room_id' => $room->id,
-            'user_id' => $user->id,
-            'tanggal' => $data['tanggal'],
-            'jam_mulai' => $jamMulai->format('H:i'),
-            'jam_selesai' => $jamSelesai->format('H:i'),
-            'tujuan' => $data['tujuan'],
-            'keterangan' => $butuhApproval ? null : ($data['keterangan'] ?? null),
-            // Lantai 19 wajib approval admin, lantai lain langsung disetujui kalau kosong.
-            'status' => $butuhApproval ? 'pending' : 'approved',
-        ]);
+        // Pastikan dalam jam operasional
+        $this->pastikanDalamJamOperasional($jamMulai, $jamSelesai);
 
-        // Kirim email notifikasi ke dosen.
-        // Muat relasi room & user agar tersedia di template email.
-        $reservation->load(['room', 'user']);
+        $bentrokDates = [];
+        foreach ($dates as $date) {
+            // Pastikan jam mulai belum lewat
+            $this->pastikanJamMulaiBelumLewat($date, $jamMulai);
 
+            // Pastikan minimal H+2 untuk lantai approval
+            if ($butuhApproval) {
+                $this->pastikanMinimalHPlus2($date);
+            }
+
+            // Pastikan ruangan kosong
+            try {
+                $this->pastikanRuanganKosong($room->id, $date, $jamMulai, $jamSelesai);
+            } catch (ValidationException $e) {
+                $bentrokDates[] = Carbon::parse($date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+            }
+        }
+
+        if (!empty($bentrokDates)) {
+            $errKey = ($tipeReservasi === 'sehari_penuh') ? 'tanggal_mulai' : 'jam_mulai';
+            throw ValidationException::withMessages([
+                $errKey => 'Ruangan tidak tersedia (sudah dipesan) pada hari berikut: ' . implode(', ', $bentrokDates) . '.',
+            ]);
+        }
+
+        $reservations = [];
+        \Illuminate\Support\Facades\DB::transaction(function () use ($room, $user, $dates, $jamMulai, $jamSelesai, $data, $butuhApproval, &$reservations) {
+            foreach ($dates as $date) {
+                $reservations[] = Reservation::create([
+                    'room_id' => $room->id,
+                    'user_id' => $user->id,
+                    'tanggal' => $date,
+                    'jam_mulai' => $jamMulai->format('H:i'),
+                    'jam_selesai' => $jamSelesai->format('H:i'),
+                    'tujuan' => $data['tujuan'],
+                    'keterangan' => $butuhApproval ? null : ($data['keterangan'] ?? null),
+                    // Lantai 19 wajib approval admin, lantai lain langsung disetujui kalau kosong.
+                    'status' => $butuhApproval ? 'pending' : 'approved',
+                ]);
+            }
+        });
+
+        // Kirim email notifikasi ke dosen
         try {
-            Mail::to($reservation->user->email)->send(new ReservationSuccessMail($reservation));
+            $userEmail = $user->email;
+            if ($tipeReservasi === 'sehari_penuh') {
+                $reservationsCol = collect($reservations)->each->load(['room', 'user']);
+                Mail::to($userEmail)->send(new MultiDayReservationSuccessMail($reservationsCol));
+            } else {
+                $res = $reservations[0];
+                $res->load(['room', 'user']);
+                Mail::to($userEmail)->send(new ReservationSuccessMail($res));
+            }
         } catch (\Throwable $e) {
-            // Tangkap error API agar reservasi tetap tersimpan walau email gagal terkirim.
-            logger()->error('Gagal mengirim email notifikasi reservasi #' . $reservation->id . ': ' . $e->getMessage());
+            logger()->error('Gagal mengirim email notifikasi reservasi: ' . $e->getMessage());
         }
 
         return redirect('/history')
