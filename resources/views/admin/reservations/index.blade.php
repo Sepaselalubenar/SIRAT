@@ -137,6 +137,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
                     @forelse($reservations as $index => $reservation)
+                        @php
+                            $isPast = \Illuminate\Support\Carbon::parse($reservation->tanggal . ' ' . $reservation->jam_selesai)->isPast();
+                        @endphp
                         <tr class="hover:bg-gray-50/70 transition-colors duration-150">
                             <td class="py-4 px-6 text-gray-400 font-medium">{{ $index + 1 }}</td>
                             <td class="py-4 px-6 font-semibold">
@@ -166,9 +169,15 @@
                             </td>
                             <td class="py-4 px-6">
                                 @if($reservation->status === 'approved')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
-                                        <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-green-500"></span> Disetujui
-                                    </span>
+                                    @if($isPast)
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-gray-400"></span> Selesai
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-green-500"></span> Disetujui
+                                        </span>
+                                    @endif
                                 @elseif($reservation->status === 'pending')
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200">
                                         <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-yellow-500"></span> Pending
@@ -198,7 +207,9 @@
                                 @endif
                             </td>
                             <td class="py-4 px-6 text-right">
-                                @if($reservation->status !== 'cancelled')
+                                @if($reservation->status === 'approved' && $isPast)
+                                    <span class="text-xs text-gray-400 italic">Selesai</span>
+                                @elseif($reservation->status !== 'cancelled')
                                     <button
                                         type="button"
                                         onclick="openCancelModal({{ $reservation->id }})"
