@@ -12,21 +12,65 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $totalRooms = Room::count();
-        $pendingReservations = Reservation::where('status', 'pending')->count();
-        $approvedReservations = Reservation::where('status', 'approved')->count();
+        $user = auth()->user();
 
-        $pendingList = Reservation::with(['room', 'user'])
-            ->where('status', 'pending')
-            ->orderBy('tanggal')
-            ->get();
+        $roomQuery = Room::query();
+        $pendingQuery = Reservation::where('status', 'pending');
+        $approvedQuery = Reservation::where('status', 'approved');
+
+        if ($user->admin_type === 1) {
+            $roomQuery->where('lantai', '!=', '19');
+            $pendingQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '!=', '19');
+            });
+            $approvedQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '!=', '19');
+            });
+        } elseif ($user->admin_type === 2) {
+            $roomQuery->where('lantai', '19');
+            $pendingQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '19');
+            });
+            $approvedQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '19');
+            });
+        }
+
+        $totalRooms = $roomQuery->count();
+        $pendingReservations = $pendingQuery->count();
+        $approvedReservations = $approvedQuery->count();
+
+        $pendingListQuery = Reservation::with(['room', 'user'])
+            ->where('status', 'pending');
+
+        if ($user->admin_type === 1) {
+            $pendingListQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '!=', '19');
+            });
+        } elseif ($user->admin_type === 2) {
+            $pendingListQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '19');
+            });
+        }
+
+        $pendingList = $pendingListQuery->orderBy('tanggal')->get();
 
         // Ruangan yang sedang/akan dipakai (reservasi approved, tanggal hari ini atau ke depan).
-        $approvedList = Reservation::with(['room', 'user'])
+        $approvedListQuery = Reservation::with(['room', 'user'])
             ->where('status', 'approved')
-            ->whereDate('tanggal', '>=', now()->toDateString())
-            ->orderBy('tanggal')
-            ->get();
+            ->whereDate('tanggal', '>=', now()->toDateString());
+
+        if ($user->admin_type === 1) {
+            $approvedListQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '!=', '19');
+            });
+        } elseif ($user->admin_type === 2) {
+            $approvedListQuery->whereHas('room', function ($q) {
+                $q->where('lantai', '19');
+            });
+        }
+
+        $approvedList = $approvedListQuery->orderBy('tanggal')->get();
 
         return view('admin.dashboard', compact(
             'totalRooms',
@@ -40,6 +84,10 @@ class DashboardController extends Controller
     public function approve($id)
     {
         $reservation = Reservation::findOrFail($id);
+
+        if (!auth()->user()->canManageReservation($reservation)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menyetujui reservasi ini.');
+        }
 
         $jamMulai = \Illuminate\Support\Carbon::parse($reservation->jam_mulai)->format('H:i:00');
         $jamSelesai = \Illuminate\Support\Carbon::parse($reservation->jam_selesai)->format('H:i:00');
@@ -80,6 +128,10 @@ class DashboardController extends Controller
         ]);
 
         $reservation = Reservation::findOrFail($id);
+
+        if (!auth()->user()->canManageReservation($reservation)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menolak reservasi ini.');
+        }
 
         $reservation->update([
             'status' => 'rejected',

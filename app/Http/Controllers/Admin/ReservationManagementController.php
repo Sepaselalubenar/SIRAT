@@ -25,6 +25,16 @@ class ReservationManagementController extends Controller
         }
 
         $query = Reservation::with(['room', 'user']);
+        $user = auth()->user();
+        if ($user->admin_type === 1) {
+            $query->whereHas('room', function($q) {
+                $q->where('lantai', '!=', '19');
+            });
+        } elseif ($user->admin_type === 2) {
+            $query->whereHas('room', function($q) {
+                $q->where('lantai', '19');
+            });
+        }
 
         switch ($sortBy) {
             case 'room':
@@ -69,6 +79,10 @@ class ReservationManagementController extends Controller
 
         $reservation = Reservation::findOrFail($id);
 
+        if (!auth()->user()->canManageReservation($reservation)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk membatalkan reservasi ini.');
+        }
+
         $reservation->update([
             'status'            => 'cancelled',
             'alasan_pembatalan' => $request->alasan_pembatalan,
@@ -89,6 +103,11 @@ class ReservationManagementController extends Controller
     public function destroy($id)
     {
         $reservation = Reservation::findOrFail($id);
+
+        if (!auth()->user()->canManageReservation($reservation)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus reservasi ini.');
+        }
+
         $reservation->delete();
 
         return redirect()->back()->with('success', 'Data reservasi berhasil dihapus.');

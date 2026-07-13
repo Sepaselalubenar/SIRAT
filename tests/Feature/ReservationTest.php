@@ -196,6 +196,7 @@ class ReservationTest extends TestCase
             'name' => 'Admin Test',
             'email' => 'admin@test.com',
             'role' => 'admin',
+            'admin_type' => 1,
             'password' => bcrypt('password'),
         ]);
 
@@ -255,6 +256,7 @@ class ReservationTest extends TestCase
             'name' => 'Admin Test',
             'email' => 'admin@test.com',
             'role' => 'admin',
+            'admin_type' => 2,
             'password' => bcrypt('password'),
         ]);
 
@@ -308,5 +310,111 @@ class ReservationTest extends TestCase
         
         // Assert that the status is still pending
         $this->assertEquals('pending', $pendingRes->fresh()->status);
+    }
+
+    public function test_admin_1_cannot_access_or_approve_floor_19()
+    {
+        $admin1 = User::create([
+            'name' => 'Admin 1 Test',
+            'email' => 'admin1@test.com',
+            'role' => 'admin',
+            'admin_type' => 1,
+            'password' => bcrypt('password'),
+        ]);
+
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L19',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '19',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        $res = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Meeting L19',
+            'status' => 'pending',
+        ]);
+
+        // Admin 1 attempts to approve floor 19 reservation -> expect 403
+        $responseApprove = $this->actingAs($admin1)->post("/admin/reservations/{$res->id}/approve");
+        $responseApprove->assertStatus(403);
+
+        // Admin 1 attempts to reserve a floor 19 room directly -> expect 403
+        $responseReserve = $this->actingAs($admin1)->post('/admin/rooms/reserve', [
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '11:00',
+            'jam_selesai' => '13:00',
+            'tujuan' => 'Rapat Admin 1',
+        ]);
+        $responseReserve->assertStatus(403);
+    }
+
+    public function test_admin_2_cannot_access_or_approve_other_floors()
+    {
+        $admin2 = User::create([
+            'name' => 'Admin 2 Test',
+            'email' => 'admin2@test.com',
+            'role' => 'admin',
+            'admin_type' => 2,
+            'password' => bcrypt('password'),
+        ]);
+
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        $res = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Meeting L3',
+            'status' => 'pending',
+        ]);
+
+        // Admin 2 attempts to approve floor 3 reservation -> expect 403
+        $responseApprove = $this->actingAs($admin2)->post("/admin/reservations/{$res->id}/approve");
+        $responseApprove->assertStatus(403);
+
+        // Admin 2 attempts to reserve a floor 3 room directly -> expect 403
+        $responseReserve = $this->actingAs($admin2)->post('/admin/rooms/reserve', [
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '11:00',
+            'jam_selesai' => '13:00',
+            'tujuan' => 'Rapat Admin 2',
+        ]);
+        $responseReserve->assertStatus(403);
     }
 }

@@ -15,6 +15,16 @@ class UserSeeder extends Seeder
             'email' => 'admin@telkomuniversity.ac.id',
             'password' => Hash::make('password'), // ganti sebelum production
             'role' => 'admin',
+            'admin_type' => 1,
+            'nip' => null,
+        ]);
+
+        User::create([
+            'name' => 'Admin Lantai 19',
+            'email' => 'admin19@telkomuniversity.ac.id',
+            'password' => Hash::make('password'), // ganti sebelum production
+            'role' => 'admin',
+            'admin_type' => 2,
             'nip' => null,
         ]);
 

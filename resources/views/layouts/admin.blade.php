@@ -214,7 +214,15 @@
                     </div>
                     <div class="hidden sm:block">
                         <p class="font-semibold text-gray-800 text-sm leading-tight">{{ auth()->user()->name }}</p>
-                        <p class="text-gray-500 text-xs mt-0.5">Admin</p>
+                        <p class="text-gray-500 text-xs mt-0.5">
+                            @if(auth()->user()->admin_type === 1)
+                                Admin (Kecuali L19)
+                            @elseif(auth()->user()->admin_type === 2)
+                                Admin (Lantai 19)
+                            @else
+                                Admin
+                            @endif
+                        </p>
                     </div>
                 </div>
             </header>

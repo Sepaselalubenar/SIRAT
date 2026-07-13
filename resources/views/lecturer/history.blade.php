@@ -59,13 +59,13 @@
                         @endphp
                         <tr class="history-row border-b last:border-b-0" data-status="{{ $rowStatus }}">
                             <td class="py-4">
-                                <p class="font-medium">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('l, d M Y') }}</p>
+                                <p class="font-medium">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
                                 <p class="text-xs text-gray-500 mt-1">
                                     {{ substr($r->jam_mulai, 0, 5) }} - {{ substr($r->jam_selesai, 0, 5) }} WIB
                                 </p>
                             </td>
                             <td class="py-4 text-gray-500 text-sm">
-                                {{ $r->created_at->translatedFormat('l, d M Y H:i') }} WIB
+                                {{ $r->created_at->translatedFormat('d M Y H:i') }} WIB
                             </td>
                             <td class="py-4">
                                 <p class="font-medium">{{ $r->room->nama ?? '-' }}</p>
@@ -120,12 +120,12 @@
                     <div class="grid grid-cols-2 gap-4 py-2.5 my-2.5 border-y border-gray-200/60 text-xs">
                         <div>
                             <span class="text-[10px] text-gray-400 font-bold tracking-wider block mb-0.5">WAKTU PEMAKAIAN</span>
-                            <p class="font-semibold text-gray-700">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('l, d M Y') }}</p>
+                            <p class="font-semibold text-gray-700">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
                             <p class="text-gray-500 mt-0.5">{{ substr($r->jam_mulai, 0, 5) }} - {{ substr($r->jam_selesai, 0, 5) }} WIB</p>
                         </div>
                         <div>
                             <span class="text-[10px] text-gray-400 font-bold tracking-wider block mb-0.5">DIAJUKAN PADA</span>
-                            <p class="font-semibold text-gray-700">{{ $r->created_at->translatedFormat('l, d M Y') }}</p>
+                            <p class="font-semibold text-gray-700">{{ $r->created_at->translatedFormat('d M Y') }}</p>
                             <p class="text-gray-500 mt-0.5">{{ $r->created_at->translatedFormat('H:i') }} WIB</p>
                         </div>
                     </div>

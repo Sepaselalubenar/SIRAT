@@ -64,7 +64,7 @@
                         <span class="text-gray-400 font-normal text-sm">&middot; Lantai {{ $reservation->room->lantai ?? '-' }}</span>
                     </h3>
                     <p class="text-gray-500 text-sm">
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('l, d M Y') }} &middot;
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }} &middot;
                         {{ substr($reservation->jam_mulai, 0, 5) }} - {{ substr($reservation->jam_selesai, 0, 5) }} &middot;
                         Tujuan: {{ $reservation->tujuan }}
                     </p>

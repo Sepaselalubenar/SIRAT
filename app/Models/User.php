@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'admin_type',
         'nip',
         'phone_number',
     ];
@@ -43,6 +44,32 @@ class User extends Authenticatable
     public function isDosen(): bool
     {
         return $this->role === 'dosen';
+    }
+
+    public function isAdmin1(): bool
+    {
+        return $this->isAdmin() && $this->admin_type === 1;
+    }
+
+    public function isAdmin2(): bool
+    {
+        return $this->isAdmin() && $this->admin_type === 2;
+    }
+
+    public function canManageRoom(Room $room): bool
+    {
+        if ($this->isAdmin1()) {
+            return (string)$room->lantai !== '19';
+        }
+        if ($this->isAdmin2()) {
+            return (string)$room->lantai === '19';
+        }
+        return false;
+    }
+
+    public function canManageReservation(Reservation $reservation): bool
+    {
+        return $reservation->room ? $this->canManageRoom($reservation->room) : false;
     }
 
     /**

@@ -48,25 +48,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-gray-500">
-                Total Ruangan
-            </h3>
-            <p class="text-4xl font-bold text-blue-600 mt-4">
-                {{ $totalRooms ?? 0 }}
-            </p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-gray-500">
-                Menunggu Approval
-            </h3>
-            <p class="text-4xl font-bold text-yellow-500 mt-4">
-                {{ $pendingReservations ?? 0 }}
-            </p>
-        </div>
+    <div class="grid grid-cols-1 gap-6">
 
         <div class="bg-white rounded-xl shadow p-6">
             <h3 class="text-gray-500">
@@ -95,10 +77,10 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('l, d M Y') }}
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
                         &middot; {{ $reservation->tujuan }}
                         &middot; <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">{{ substr($reservation->jam_mulai, 0, 5) }} - {{ substr($reservation->jam_selesai, 0, 5) }}</span>
-                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('l, d M Y H:i') }} WIB</span>
+                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
                     </p>
                     @if($reservation->keterangan)
                         <p class="text-xs text-gray-400 mt-1 italic">Catatan: "{{ $reservation->keterangan }}"</p>
@@ -142,9 +124,9 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('l, d M Y') }}
+                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
                         &middot; {{ $reservation->tujuan }}
-                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('l, d M Y H:i') }} WIB</span>
+                        &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
                     </p>
                 </div>
 

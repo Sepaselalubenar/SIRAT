@@ -10,9 +10,25 @@ use Illuminate\Support\Facades\Storage;
 
 class RoomManagementController extends Controller
 {
+    private function authorizeRoom(Room $room)
+    {
+        if (!auth()->user()->canManageRoom($room)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengelola ruangan ini.');
+        }
+    }
+
     public function index()
     {
-        $rooms = Room::with('photos')->orderBy('id', 'desc')->get();
+        $user = auth()->user();
+        $query = Room::with('photos')->orderBy('id', 'desc');
+
+        if ($user->admin_type === 1) {
+            $query->where('lantai', '!=', '19');
+        } elseif ($user->admin_type === 2) {
+            $query->where('lantai', '19');
+        }
+
+        $rooms = $query->get();
         $users = \App\Models\User::orderBy('name')->get();
         return view('admin.rooms.index', compact('rooms', 'users'));
     }
@@ -30,6 +46,14 @@ class RoomManagementController extends Controller
             'fasilitas.*' => 'required|string|max:255',
         ]);
 
+        $adminType = auth()->user()->admin_type;
+        if ($adminType === 1 && (string)$validated['lantai'] === '19') {
+            return redirect()->back()->withErrors(['lantai' => 'Admin 1 tidak dapat menambahkan ruangan di lantai 19.'])->withInput();
+        }
+        if ($adminType === 2 && (string)$validated['lantai'] !== '19') {
+            return redirect()->back()->withErrors(['lantai' => 'Admin 2 hanya dapat menambahkan ruangan di lantai 19.'])->withInput();
+        }
+
         // Clean up empty items from fasilitas array
         if (isset($validated['fasilitas'])) {
             $validated['fasilitas'] = array_values(array_filter($validated['fasilitas']));
@@ -43,6 +67,7 @@ class RoomManagementController extends Controller
     public function update(Request $request, $id)
     {
         $room = Room::findOrFail($id);
+        $this->authorizeRoom($room);
 
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
@@ -54,6 +79,14 @@ class RoomManagementController extends Controller
             'fasilitas' => 'nullable|array',
             'fasilitas.*' => 'required|string|max:255',
         ]);
+
+        $adminType = auth()->user()->admin_type;
+        if ($adminType === 1 && (string)$validated['lantai'] === '19') {
+            return redirect()->back()->withErrors(['lantai' => 'Admin 1 tidak dapat memindahkan ruangan ke lantai 19.'])->withInput();
+        }
+        if ($adminType === 2 && (string)$validated['lantai'] !== '19') {
+            return redirect()->back()->withErrors(['lantai' => 'Admin 2 hanya dapat memindahkan ruangan dari lantai 19.'])->withInput();
+        }
 
         if (isset($validated['fasilitas'])) {
             $validated['fasilitas'] = array_values(array_filter($validated['fasilitas']));
@@ -69,6 +102,7 @@ class RoomManagementController extends Controller
     public function destroy($id)
     {
         $room = Room::findOrFail($id);
+        $this->authorizeRoom($room);
 
         // Delete all photo files from disk first, and delete the photo records
         foreach ($room->photos as $photo) {
@@ -90,6 +124,7 @@ class RoomManagementController extends Controller
     public function uploadPhoto(Request $request, $id)
     {
         $room = Room::findOrFail($id);
+        $this->authorizeRoom($room);
 
         $request->validate([
             'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
@@ -126,6 +161,10 @@ class RoomManagementController extends Controller
     public function deletePhoto($photoId)
     {
         $photo = RoomPhoto::findOrFail($photoId);
+        $room = $photo->room;
+        if ($room) {
+            $this->authorizeRoom($room);
+        }
 
         if (Storage::disk('public')->exists($photo->path)) {
             Storage::disk('public')->delete($photo->path);
@@ -152,6 +191,9 @@ class RoomManagementController extends Controller
         ]);
 
         $roomId = $validated['room_id'];
+        $room = Room::findOrFail($roomId);
+        $this->authorizeRoom($room);
+
         $tanggal = $validated['tanggal'];
         $jamMulai = \Illuminate\Support\Carbon::parse($validated['jam_mulai']);
         $jamSelesai = \Illuminate\Support\Carbon::parse($validated['jam_selesai']);

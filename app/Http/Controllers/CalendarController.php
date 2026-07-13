@@ -11,7 +11,15 @@ class CalendarController extends Controller
 {
     public function index()
     {
-        $rooms = Room::orderBy('lantai')->orderBy('nama')->get();
+        $query = Room::orderBy('lantai')->orderBy('nama');
+        if (auth()->check() && auth()->user()->isAdmin()) {
+            if (auth()->user()->admin_type === 1) {
+                $query->where('lantai', '!=', '19');
+            } elseif (auth()->user()->admin_type === 2) {
+                $query->where('lantai', '19');
+            }
+        }
+        $rooms = $query->get();
         return view('calendar.index', compact('rooms'));
     }
 
@@ -32,6 +40,16 @@ class CalendarController extends Controller
 
         if ($roomId && $roomId !== 'all') {
             $query->where('room_id', $roomId);
+        } elseif (auth()->check() && auth()->user()->isAdmin()) {
+            if (auth()->user()->admin_type === 1) {
+                $query->whereHas('room', function($q) {
+                    $q->where('lantai', '!=', '19');
+                });
+            } elseif (auth()->user()->admin_type === 2) {
+                $query->whereHas('room', function($q) {
+                    $q->where('lantai', '19');
+                });
+            }
         }
 
         $reservations = $query->orderBy('jam_mulai')->get();

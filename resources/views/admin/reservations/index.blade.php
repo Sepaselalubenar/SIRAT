@@ -151,10 +151,10 @@
                                 <span class="block text-xs text-gray-400">{{ $reservation->user->nip ? 'NIP: ' . $reservation->user->nip : 'Admin' }}</span>
                             </td>
                             <td class="py-4 px-6 text-gray-500">
-                                {{ $reservation->created_at->translatedFormat('l, d M Y H:i') }} WIB
+                                {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB
                             </td>
                             <td class="py-4 px-6">
-                                {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('l, d M Y') }}
+                                {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
                             </td>
                             <td class="py-4 px-6 font-medium">
                                 {{ substr($reservation->jam_mulai, 0, 5) }} - {{ substr($reservation->jam_selesai, 0, 5) }}

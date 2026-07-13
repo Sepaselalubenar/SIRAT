@@ -28,7 +28,13 @@
                     <!-- Lantai -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Lantai *</label>
-                        <input type="text" name="lantai" id="edit-lantai" required class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        @if(auth()->user()->admin_type === 2)
+                            <input type="text" name="lantai" id="edit-lantai" value="19" readonly required class="w-full rounded-xl border border-gray-300 bg-gray-100 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-not-allowed">
+                            <span class="text-xs text-gray-400 mt-1 block">Terkunci: Admin 2 hanya dapat mengelola lantai 19.</span>
+                        @else
+                            <input type="text" name="lantai" id="edit-lantai" required class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span class="text-xs text-gray-400 mt-1 block">Admin 1 dapat mengelola semua lantai kecuali 19.</span>
+                        @endif
                     </div>
 
                     <!-- Kapasitas -->
