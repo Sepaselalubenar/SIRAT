@@ -25,6 +25,7 @@ class UserSeeder extends Seeder
             'password' => null,
             'role' => 'dosen',
             'nip' => '123456',
+            'phone_number' => '081234567890',
         ]);
 
         User::create([
@@ -33,6 +34,7 @@ class UserSeeder extends Seeder
             'password' => null,
             'role' => 'dosen',
             'nip' => '654321',
+            'phone_number' => '082198765432',
         ]);
     }
 }

@@ -17,7 +17,8 @@ class UserManagementController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
                   ->orWhere('email', 'ilike', "%{$search}%")
-                  ->orWhere('nip', 'ilike', "%{$search}%");
+                  ->orWhere('nip', 'ilike', "%{$search}%")
+                  ->orWhere('phone_number', 'ilike', "%{$search}%");
             });
         }
 
@@ -29,9 +30,10 @@ class UserManagementController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'nip'   => 'nullable|string|max:20|unique:users,nip',
+            'name'         => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email',
+            'nip'          => 'nullable|string|max:20|unique:users,nip',
+            'phone_number' => 'nullable|string|max:20',
         ], [
             'name.required'  => 'Nama dosen wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -40,10 +42,11 @@ class UserManagementController extends Controller
         ]);
 
         User::create([
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
-            'nip'   => $validated['nip'] ?? null,
-            'role'  => 'dosen',
+            'name'         => $validated['name'],
+            'email'        => $validated['email'],
+            'nip'          => $validated['nip'] ?? null,
+            'phone_number' => $validated['phone_number'] ?? null,
+            'role'         => 'dosen',
         ]);
 
         return redirect()->back()->with('success', 'Akun dosen berhasil ditambahkan.');
@@ -52,9 +55,10 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'nip'   => 'nullable|string|max:20|unique:users,nip,' . $user->id,
+            'name'         => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email,' . $user->id,
+            'nip'          => 'nullable|string|max:20|unique:users,nip,' . $user->id,
+            'phone_number' => 'nullable|string|max:20',
         ], [
             'name.required'  => 'Nama dosen wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -63,9 +67,10 @@ class UserManagementController extends Controller
         ]);
 
         $user->update([
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
-            'nip'   => $validated['nip'] ?? null,
+            'name'         => $validated['name'],
+            'email'        => $validated['email'],
+            'nip'          => $validated['nip'] ?? null,
+            'phone_number' => $validated['phone_number'] ?? null,
         ]);
 
         return redirect()->back()->with('success', 'Data dosen berhasil diperbarui.');

@@ -66,6 +66,7 @@
                         <th class="text-left px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">Nama</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">Email</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">NIP</th>
+                        <th class="text-left px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">No. HP</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">Total Reservasi</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">Terdaftar</th>
                         <th class="text-right px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs">Aksi</th>
@@ -86,6 +87,13 @@
                             <td class="px-6 py-4">
                                 @if($user->nip)
                                     <span class="font-mono text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">{{ $user->nip }}</span>
+                                @else
+                                    <span class="text-gray-400 italic text-xs">—</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($user->phone_number)
+                                    <span class="font-mono text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">{{ $user->phone_number }}</span>
                                 @else
                                     <span class="text-gray-400 italic text-xs">—</span>
                                 @endif
@@ -119,7 +127,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-16 text-center">
+                            <td colspan="7" class="px-6 py-16 text-center">
                                 <svg class="mx-auto h-10 w-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
@@ -183,6 +191,12 @@
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" placeholder="1234567890123456">
                 @error('nip') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">No. HP</label>
+                <input type="text" name="phone_number" value="{{ old('phone_number') }}"
+                    class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="081234567890">
+                @error('phone_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="closeCreateModal()"
                     class="flex-1 border border-gray-300 text-gray-700 rounded-xl py-3 font-semibold hover:bg-gray-50 transition cursor-pointer">
@@ -222,6 +236,11 @@
                 <input type="text" name="nip" id="edit-nip"
                     class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
             </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">No. HP</label>
+                <input type="text" name="phone_number" id="edit-phone_number"
+                    class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="closeEditModal()"
                     class="flex-1 border border-gray-300 text-gray-700 rounded-xl py-3 font-semibold hover:bg-gray-50 transition cursor-pointer">
@@ -250,6 +269,7 @@
         document.getElementById('edit-name').value  = user.name;
         document.getElementById('edit-email').value = user.email;
         document.getElementById('edit-nip').value   = user.nip ?? '';
+        document.getElementById('edit-phone_number').value = user.phone_number ?? '';
         document.getElementById('edit-form').action = `/admin/users/${user.id}`;
         document.getElementById('modal-edit').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
