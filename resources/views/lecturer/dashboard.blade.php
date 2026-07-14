@@ -142,15 +142,33 @@
             </div>
         </div>
 
-        <!-- Legend & Display Date -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-            <div class="flex items-center gap-3">
-                <div id="date-display" class="text-lg font-bold text-gray-800"></div>
-                <div id="loading-spinner" class="hidden">
-                    <svg class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
+        <!-- Legend, Display Date & View Switcher -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="date-display" class="text-lg font-bold text-gray-800"></div>
+                    <div id="loading-spinner" class="hidden">
+                        <svg class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- View Toggle Switcher -->
+                <div class="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200 self-start sm:self-auto">
+                    <button id="view-timeline-btn" class="px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M3 14h18m-9-4v8m-9-8v8m18-8v8" />
+                        </svg>
+                        Timeline
+                    </button>
+                    <button id="view-list-btn" class="px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        Daftar Agenda
+                    </button>
                 </div>
             </div>
 
@@ -171,13 +189,18 @@
             </div>
         </div>
 
-        <!-- Timeline Grid -->
+        <!-- Timeline Grid & List View -->
         <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div id="calendar-container" class="overflow-x-auto">
                 <div id="calendar-grid" class="min-w-[700px]">
                     <!-- Renders dynamically via JS -->
                 </div>
             </div>
+
+            <div id="list-container" class="hidden divide-y divide-gray-100">
+                <!-- Renders dynamically via JS -->
+            </div>
+
             <!-- Empty State -->
             <div id="empty-state" class="hidden py-16 text-center">
                 <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,6 +244,14 @@
     const spinner      = document.getElementById('loading-spinner');
     const auth_role    = '{{ auth()->user()->role }}';
 
+    const calendarContainer = document.getElementById('calendar-container');
+    const listContainer     = document.getElementById('list-container');
+    const viewTimelineBtn   = document.getElementById('view-timeline-btn');
+    const viewListBtn       = document.getElementById('view-list-btn');
+
+    let currentView = window.innerWidth < 768 ? 'list' : 'timeline';
+    let lastReservationsData = [];
+
     // ====== Formatting Helpers ======
     function formatDateDisplay(dateStr) {
         const d = new Date(dateStr + 'T00:00:00');
@@ -240,7 +271,6 @@
         return (minutes / (TOTAL_HOURS * 60)) * 100;
     }
 
-    // Convert duration to grid percent width
     function durationPercent(startStr, endStr) {
         const [sh, sm] = startStr.split(':').map(Number);
         const [eh, em] = endStr.split(':').map(Number);
@@ -249,17 +279,103 @@
         return ((endMin - startMin) / (TOTAL_HOURS * 60)) * 100;
     }
 
-    // ====== Render Timeline ======
-    function renderTimeline(reservations) {
-        grid.innerHTML = '';
-        spinner.classList.add('hidden');
+    // ====== Helper for Room Intervals ======
+    function getRoomIntervals(roomRes) {
+        const sorted = [...roomRes].sort((a, b) => a.jam_mulai.localeCompare(b.jam_mulai));
+        const intervals = [];
+        
+        const pad = (n) => String(n).padStart(2, '0');
+        const timeToMinutes = (t) => {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        };
+        const minutesToTime = (m) => {
+            const h = Math.floor(m / 60);
+            const mins = m % 60;
+            return `${pad(h)}:${pad(mins)}`;
+        };
+
+        let currentTimeMins = TIME_START * 60;
+        const endTimeMins = TIME_END * 60;
+
+        sorted.forEach(res => {
+            const resStartMins = timeToMinutes(res.jam_mulai);
+            const resEndMins = timeToMinutes(res.jam_selesai);
+
+            if (resStartMins > currentTimeMins) {
+                intervals.push({
+                    start: minutesToTime(currentTimeMins),
+                    end: minutesToTime(resStartMins),
+                    type: 'free'
+                });
+            }
+
+            intervals.push({
+                start: res.jam_mulai,
+                end: res.jam_selesai,
+                type: 'booked',
+                reservation: res
+            });
+
+            currentTimeMins = Math.max(currentTimeMins, resEndMins);
+        });
+
+        if (currentTimeMins < endTimeMins) {
+            intervals.push({
+                start: minutesToTime(currentTimeMins),
+                end: minutesToTime(endTimeMins),
+                type: 'free'
+            });
+        }
+
+        return intervals;
+    }
+
+    // ====== Switch View UI Update ======
+    function updateToggleUI() {
+        if (currentView === 'timeline') {
+            viewTimelineBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer bg-white text-blue-600 shadow-sm border border-gray-200';
+            viewListBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer text-gray-500 hover:text-gray-800 border border-transparent';
+            calendarContainer.classList.remove('hidden');
+            listContainer.classList.add('hidden');
+        } else {
+            viewTimelineBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer text-gray-500 hover:text-gray-800 border border-transparent';
+            viewListBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer bg-white text-blue-600 shadow-sm border border-gray-200';
+            calendarContainer.classList.add('hidden');
+            listContainer.classList.remove('hidden');
+        }
+    }
+
+    // ====== General Render Router ======
+    function render() {
         dateDisplay.textContent = formatDateDisplay(currentDate);
+        updateToggleUI();
 
         const selectedRoomId = roomFilter.value;
         let roomsToShow = allRooms;
         if (selectedRoomId !== 'all') {
             roomsToShow = allRooms.filter(r => r.id == selectedRoomId);
         }
+
+        if (roomsToShow.length === 0) {
+            emptyState.classList.remove('hidden');
+            calendarContainer.classList.add('hidden');
+            listContainer.classList.add('hidden');
+            return;
+        }
+        emptyState.classList.add('hidden');
+
+        if (currentView === 'timeline') {
+            renderTimeline(roomsToShow, lastReservationsData);
+        } else {
+            renderList(roomsToShow, lastReservationsData);
+        }
+    }
+
+    // ====== Render Timeline ======
+    function renderTimeline(roomsToShow, reservations) {
+        grid.innerHTML = '';
+        spinner.classList.add('hidden');
 
         // Build a map: room_id -> reservations
         const resMap = {};
@@ -283,12 +399,6 @@
             </div>
         `;
         grid.appendChild(header);
-
-        if (roomsToShow.length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
-        }
-        emptyState.classList.add('hidden');
 
         roomsToShow.forEach(room => {
             const row = document.createElement('div');
@@ -348,10 +458,109 @@
         });
     }
 
+    // ====== Render List / Agenda ======
+    function renderList(roomsToShow, reservations) {
+        listContainer.innerHTML = '';
+        spinner.classList.add('hidden');
+
+        // Build a map: room_id -> reservations
+        const resMap = {};
+        reservations.forEach(res => {
+            if (!resMap[res.room_id]) resMap[res.room_id] = [];
+            resMap[res.room_id].push(res);
+        });
+
+        roomsToShow.forEach(room => {
+            const roomRes = resMap[room.id] || [];
+            
+            // Outer Room Card
+            const roomCard = document.createElement('div');
+            
+            // If the room is completely available, make it compact
+            if (roomRes.length === 0) {
+                roomCard.className = 'p-4 flex items-center justify-between gap-4 hover:bg-gray-50/50 transition-colors';
+                roomCard.innerHTML = `
+                    <div>
+                        <div class="font-bold text-gray-800 text-sm leading-tight">${room.nama}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Lantai ${room.lantai}
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-lg border border-green-200 shrink-0">
+                        ✓ Tersedia seharian
+                    </span>
+                `;
+            } else {
+                // Room has bookings
+                roomCard.className = 'p-5 flex flex-col gap-3 hover:bg-gray-50/50 transition-colors';
+                
+                // Room header inside card
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'flex items-center justify-between pb-2 border-b border-gray-150/60';
+                headerDiv.innerHTML = `
+                    <div>
+                        <div class="font-bold text-gray-800 text-sm leading-tight">${room.nama}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Lantai ${room.lantai}
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-semibold border border-blue-100 shrink-0">
+                        ${roomRes.length} Reservasi
+                    </span>
+                `;
+                roomCard.appendChild(headerDiv);
+
+                // Reservations list
+                const agendaWrapper = document.createElement('div');
+                agendaWrapper.className = 'space-y-2';
+
+                // Sort reservations by start time
+                const sortedRes = [...roomRes].sort((a, b) => a.jam_mulai.localeCompare(b.jam_mulai));
+
+                sortedRes.forEach(res => {
+                    const isApproved = res.status === 'approved';
+                    const dotColor = isApproved ? 'bg-blue-500' : 'bg-yellow-400';
+                    const bgClass = isApproved ? 'bg-blue-50/40 hover:bg-blue-50/80 border-blue-200' : 'bg-yellow-50/40 hover:bg-yellow-50/80 border-yellow-200';
+                    const badgeColor = isApproved ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                    const badgeText = isApproved ? 'Disetujui' : 'Menunggu';
+
+                    const block = document.createElement('div');
+                    block.className = `flex flex-col gap-2 p-3 border rounded-xl shadow-sm transition cursor-pointer ${bgClass}`;
+                    block.innerHTML = `
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full ${dotColor} shrink-0"></div>
+                                <span class="text-xs font-bold text-gray-800">${res.jam_mulai} – ${res.jam_selesai}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${badgeText}</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 pt-1 border-t border-gray-100/50">
+                            <div><span class="text-gray-400">Pemesan:</span> <span class="font-medium text-gray-700">${res.user_name}</span></div>
+                            <div><span class="text-gray-400">Tujuan:</span> <span class="font-medium text-gray-700">${res.tujuan}</span></div>
+                        </div>
+                    `;
+                    block.addEventListener('click', () => openDetailModal(res));
+                    agendaWrapper.appendChild(block);
+                });
+
+                roomCard.appendChild(agendaWrapper);
+            }
+
+            listContainer.appendChild(roomCard);
+        });
+    }
+
     // ====== Fetch Data ======
     function fetchCalendar() {
         spinner.classList.remove('hidden');
         grid.innerHTML = '';
+        listContainer.innerHTML = '';
         emptyState.classList.add('hidden');
 
         const roomId = roomFilter.value;
@@ -363,11 +572,13 @@
         })
         .then(r => r.json())
         .then(data => {
-            renderTimeline(data);
+            lastReservationsData = data;
+            render();
         })
         .catch(() => {
             spinner.classList.add('hidden');
             grid.innerHTML = '<div class="p-8 text-center text-gray-400">Gagal memuat data. Coba muat ulang halaman.</div>';
+            listContainer.innerHTML = '<div class="p-8 text-center text-gray-400">Gagal memuat data. Coba muat ulang halaman.</div>';
         });
     }
 
@@ -413,6 +624,7 @@
         document.getElementById('detail-modal').classList.remove('hidden');
     }
 
+    // ====== Detail Modal Close ======
     function closeDetailModal() {
         document.getElementById('detail-modal').classList.add('hidden');
     }
@@ -452,6 +664,16 @@
 
     document.getElementById('detail-modal').addEventListener('click', function(e) {
         if (e.target === this) closeDetailModal();
+    });
+
+    viewTimelineBtn.addEventListener('click', () => {
+        currentView = 'timeline';
+        render();
+    });
+
+    viewListBtn.addEventListener('click', () => {
+        currentView = 'list';
+        render();
     });
 
     // ====== Initial Load ======
