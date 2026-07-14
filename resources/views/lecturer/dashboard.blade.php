@@ -70,6 +70,8 @@
                     </p>
                     @if($reservation->status === 'rejected' && $reservation->alasan_penolakan)
                         <p class="text-xs text-red-500 mt-1 italic">Alasan penolakan: "{{ $reservation->alasan_penolakan }}"</p>
+                    @elseif($reservation->status === 'cancelled' && $reservation->alasan_pembatalan)
+                        <p class="text-xs text-amber-600 mt-1 italic">Alasan pembatalan: "{{ $reservation->alasan_pembatalan }}"</p>
                     @endif
                 </div>
 
@@ -78,6 +80,8 @@
                         <span class="text-green-600 font-semibold text-sm">Disetujui</span>
                     @elseif($reservation->status === 'pending')
                         <span class="text-yellow-500 font-semibold text-sm">Menunggu Approval</span>
+                    @elseif($reservation->status === 'cancelled')
+                        <span class="text-amber-600 font-semibold text-sm">Dibatalkan</span>
                     @else
                         <span class="text-red-500 font-semibold text-sm">Ditolak</span>
                     @endif

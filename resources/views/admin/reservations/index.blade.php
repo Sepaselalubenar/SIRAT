@@ -215,7 +215,7 @@
                                         onclick="openCancelModal({{ $reservation->id }})"
                                         class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer"
                                     >
-                                        Hapus
+                                        Batalkan
                                     </button>
                                 @else
                                     <span class="text-xs text-gray-400 italic">Sudah dibatalkan</span>

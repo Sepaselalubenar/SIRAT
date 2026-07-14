@@ -231,4 +231,32 @@ class ReservationController extends Controller
             ]);
         }
     }
+
+    /**
+     * Membatalkan reservasi oleh user pemohon.
+     */
+    public function cancelUser(Request $request, $id)
+    {
+        $reservation = Reservation::findOrFail($id);
+
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk membatalkan reservasi ini.');
+        }
+
+        if (!in_array($reservation->status, ['pending', 'approved'])) {
+            return redirect()->back()->with('error', 'Hanya reservasi dengan status pending atau disetujui yang dapat dibatalkan.');
+        }
+
+        $isPast = Carbon::parse($reservation->tanggal . ' ' . $reservation->jam_selesai)->isPast();
+        if ($isPast) {
+            return redirect()->back()->with('error', 'Reservasi yang sudah terlewati tidak dapat dibatalkan.');
+        }
+
+        $reservation->update([
+            'status' => 'cancelled',
+            'alasan_pembatalan' => 'Dibatalkan oleh user',
+        ]);
+
+        return redirect()->back()->with('success', 'Reservasi Anda berhasil dibatalkan.');
+    }
 }

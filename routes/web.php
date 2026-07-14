@@ -42,6 +42,7 @@ Route::middleware(['auth', 'role:dosen,pegawai'])->group(function () {
     Route::get('/reservation', [RoomController::class, 'index']);
     Route::get('/reservation/detail/{id}', [RoomController::class, 'show']);
     Route::post('/reservation/store', [ReservationController::class, 'store']);
+    Route::post('/reservation/{id}/cancel', [ReservationController::class, 'cancelUser'])->name('reservation.cancel');
 
     // Calendar
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');

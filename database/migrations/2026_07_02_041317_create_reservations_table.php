@@ -31,7 +31,8 @@ return new class extends Migration
         $table->enum('status', [
             'pending',
             'approved',
-            'rejected'
+            'rejected',
+            'cancelled'
         ])->default('pending');
 
         $table->text('alasan_penolakan')->nullable(); // diisi admin kalau status rejected

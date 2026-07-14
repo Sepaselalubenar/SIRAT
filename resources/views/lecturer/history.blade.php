@@ -13,6 +13,12 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="bg-red-50 text-red-700 rounded-lg p-4 mb-6">
+        {{ session('error') }}
+    </div>
+@endif
+
 <div class="bg-white rounded-xl shadow p-6">
 
     <div class="flex gap-2 border-b mb-6 overflow-x-auto" id="status-tabs">
@@ -21,6 +27,7 @@
         <button type="button" class="status-tab whitespace-nowrap px-4 py-3 font-medium" data-status="pending">Menunggu Approval</button>
         <button type="button" class="status-tab whitespace-nowrap px-4 py-3 font-medium" data-status="selesai">Selesai</button>
         <button type="button" class="status-tab whitespace-nowrap px-4 py-3 font-medium" data-status="rejected">Ditolak</button>
+        <button type="button" class="status-tab whitespace-nowrap px-4 py-3 font-medium" data-status="cancelled">Dibatalkan</button>
     </div>
 
     @if($reservations->isEmpty())
@@ -37,6 +44,7 @@
                         <th class="py-3">Tujuan</th>
                         <th class="py-3">Status</th>
                         <th class="py-3">Keterangan</th>
+                        <th class="py-3">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +54,7 @@
                             $rowStatus = match(true) {
                                 $r->status === 'pending' => 'pending',
                                 $r->status === 'rejected' => 'rejected',
+                                $r->status === 'cancelled' => 'cancelled',
                                 $r->status === 'approved' && $isPast => 'selesai',
                                 $r->status === 'approved' && !$isPast => 'aktif',
                                 default => 'semua',
@@ -54,6 +63,7 @@
                                 'pending' => ['Menunggu Approval', 'bg-yellow-100 text-yellow-700'],
                                 'approved' => $isPast ? ['Selesai', 'bg-gray-100 text-gray-600'] : ['Disetujui', 'bg-green-100 text-green-700'],
                                 'rejected' => ['Ditolak', 'bg-red-100 text-red-700'],
+                                'cancelled' => ['Dibatalkan', 'bg-amber-100 text-amber-700 border border-amber-200'],
                                 default => [ucfirst($r->status), 'bg-gray-100 text-gray-600'],
                             };
                         @endphp
@@ -77,9 +87,23 @@
                             </td>
                             <td class="py-4 text-gray-500 text-sm max-w-xs">
                                 @if($r->status === 'rejected' && $r->alasan_penolakan)
-                                    <span class="text-red-500">Alasan: {{ $r->alasan_penolakan }}</span>
+                                    <span class="text-red-500">Alasan Penolakan: {{ $r->alasan_penolakan }}</span>
+                                @elseif($r->status === 'cancelled' && $r->alasan_pembatalan)
+                                    <span class="text-amber-600">Alasan Pembatalan: {{ $r->alasan_pembatalan }}</span>
                                 @else
                                     {{ $r->keterangan ?? '-' }}
+                                @endif
+                            </td>
+                            <td class="py-4">
+                                @if(($r->status === 'pending' || $r->status === 'approved') && !$isPast)
+                                    <form action="{{ url('/reservation/' . $r->id . '/cancel') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan reservasi ini?')">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer">
+                                            Batalkan
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-gray-400">-</span>
                                 @endif
                             </td>
                         </tr>
@@ -96,6 +120,7 @@
                     $rowStatus = match(true) {
                         $r->status === 'pending' => 'pending',
                         $r->status === 'rejected' => 'rejected',
+                        $r->status === 'cancelled' => 'cancelled',
                         $r->status === 'approved' && $isPast => 'selesai',
                         $r->status === 'approved' && !$isPast => 'aktif',
                         default => 'semua',
@@ -104,6 +129,7 @@
                         'pending' => ['Menunggu Approval', 'bg-yellow-100 text-yellow-700'],
                         'approved' => $isPast ? ['Selesai', 'bg-gray-100 text-gray-600'] : ['Disetujui', 'bg-green-100 text-green-700'],
                         'rejected' => ['Ditolak', 'bg-red-100 text-red-700'],
+                        'cancelled' => ['Dibatalkan', 'bg-amber-100 text-amber-700 border border-amber-200'],
                         default => [ucfirst($r->status), 'bg-gray-100 text-gray-600'],
                     };
                 @endphp
@@ -140,12 +166,25 @@
                             <span class="text-gray-700 break-words">
                                 @if($r->status === 'rejected' && $r->alasan_penolakan)
                                     <span class="text-red-650 font-medium">Alasan Penolakan: {{ $r->alasan_penolakan }}</span>
+                                @elseif($r->status === 'cancelled' && $r->alasan_pembatalan)
+                                    <span class="text-amber-600 font-medium">Alasan Pembatalan: {{ $r->alasan_pembatalan }}</span>
                                 @else
                                     {{ $r->keterangan ?? '-' }}
                                 @endif
                             </span>
                         </div>
                     </div>
+
+                    @if(($r->status === 'pending' || $r->status === 'approved') && !$isPast)
+                        <div class="mt-3 pt-3 border-t border-gray-200 flex justify-end">
+                            <form action="{{ url('/reservation/' . $r->id . '/cancel') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan reservasi ini?')">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer">
+                                    Batalkan Reservasi
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>

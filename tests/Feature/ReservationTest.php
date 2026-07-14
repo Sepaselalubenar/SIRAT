@@ -710,4 +710,190 @@ class ReservationTest extends TestCase
             'status' => 'approved',
         ]);
     }
+
+    public function test_user_can_cancel_own_pending_or_approved_reservation_in_future()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        // 1. Pending reservation
+        $resPending = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat Pending',
+            'status' => 'pending',
+        ]);
+
+        // 2. Approved reservation
+        $resApproved = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '12:00',
+            'tujuan' => 'Rapat Approved',
+            'status' => 'approved',
+        ]);
+
+        // Cancel pending
+        $response1 = $this->actingAs($dosen)->post("/reservation/{$resPending->id}/cancel");
+        $response1->assertRedirect();
+        $response1->assertSessionHas('success');
+        $this->assertEquals('cancelled', $resPending->fresh()->status);
+        $this->assertEquals('Dibatalkan oleh user', $resPending->fresh()->alasan_pembatalan);
+
+        // Cancel approved
+        $response2 = $this->actingAs($dosen)->post("/reservation/{$resApproved->id}/cancel");
+        $response2->assertRedirect();
+        $response2->assertSessionHas('success');
+        $this->assertEquals('cancelled', $resApproved->fresh()->status);
+        $this->assertEquals('Dibatalkan oleh user', $resApproved->fresh()->alasan_pembatalan);
+    }
+
+    public function test_user_cannot_cancel_other_users_reservation()
+    {
+        $dosen1 = User::create([
+            'name' => 'Dosen 1',
+            'email' => 'dosen1@test.com',
+            'role' => 'dosen',
+            'nip' => '11111111',
+        ]);
+
+        $dosen2 = User::create([
+            'name' => 'Dosen 2',
+            'email' => 'dosen2@test.com',
+            'role' => 'dosen',
+            'nip' => '22222222',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        $res = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen1->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat Dosen 1',
+            'status' => 'pending',
+        ]);
+
+        // Dosen 2 tries to cancel Dosen 1's reservation
+        $response = $this->actingAs($dosen2)->post("/reservation/{$res->id}/cancel");
+        $response->assertStatus(403);
+        $this->assertEquals('pending', $res->fresh()->status);
+    }
+
+    public function test_user_cannot_cancel_past_reservation()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::yesterday()->toDateString();
+
+        $res = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat Kemarin',
+            'status' => 'approved',
+        ]);
+
+        $response = $this->actingAs($dosen)->post("/reservation/{$res->id}/cancel");
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->assertEquals('approved', $res->fresh()->status);
+    }
+
+    public function test_user_cannot_cancel_already_rejected_or_cancelled_reservation()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->toDateString();
+
+        $resRejected = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat Ditolak',
+            'status' => 'rejected',
+        ]);
+
+        $resCancelled = Reservation::create([
+            'room_id' => $room->id,
+            'user_id' => $dosen->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '12:00',
+            'tujuan' => 'Rapat Batal',
+            'status' => 'cancelled',
+        ]);
+
+        // Cancel rejected
+        $response1 = $this->actingAs($dosen)->post("/reservation/{$resRejected->id}/cancel");
+        $response1->assertRedirect();
+        $response1->assertSessionHas('error');
+        $this->assertEquals('rejected', $resRejected->fresh()->status);
+
+        // Cancel cancelled
+        $response2 = $this->actingAs($dosen)->post("/reservation/{$resCancelled->id}/cancel");
+        $response2->assertRedirect();
+        $response2->assertSessionHas('error');
+        $this->assertEquals('cancelled', $resCancelled->fresh()->status);
+    }
 }
+
