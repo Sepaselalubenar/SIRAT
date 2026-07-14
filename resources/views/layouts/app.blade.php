@@ -209,7 +209,7 @@
                 </div>
 
                 <div class="flex items-center gap-5">
-                    <button class="text-xl">🔔</button>
+                    <button class="text-xl"></button>
 
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
