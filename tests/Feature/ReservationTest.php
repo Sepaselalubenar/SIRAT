@@ -135,7 +135,7 @@ class ReservationTest extends TestCase
         $response2->assertSessionHasErrors(['jam_mulai']);
     }
 
-    public function test_lecturer_reservation_floor_19_overrides_keterangan_and_requires_tujuan()
+    public function test_lecturer_reservation_floor_19_requires_keterangan_and_requires_tujuan()
     {
         // 1. Create a lecturer user
         $dosen = User::create([
@@ -160,14 +160,14 @@ class ReservationTest extends TestCase
         $tanggal = Carbon::now()->addDays(2)->toDateString();
 
         // 3. Make reservation with a custom text tujuan, and verify it successfully works,
-        // and that any provided keterangan is discarded (set to null)
+        // and that any provided keterangan is saved successfully
         $response = $this->actingAs($dosen)->post('/reservation/store', [
             'room_id' => $room19->id,
             'tanggal' => $tanggal,
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'tujuan' => 'Rapat Koordinasi Anggaran Proyek Mandiri 2026',
-            'keterangan' => 'Ini keterangan yang harusnya di-override jadi null oleh sistem',
+            'keterangan' => 'Ini keterangan untuk ruang approval',
         ]);
 
         $response->assertRedirect('/history');
@@ -176,7 +176,7 @@ class ReservationTest extends TestCase
             'room_id' => $room19->id,
             'tanggal' => $tanggal,
             'tujuan' => 'Rapat Koordinasi Anggaran Proyek Mandiri 2026',
-            'keterangan' => null, // must be null
+            'keterangan' => 'Ini keterangan untuk ruang approval',
             'status' => 'pending', // Floor 19 defaults to pending
         ]);
 
@@ -187,9 +187,22 @@ class ReservationTest extends TestCase
             'jam_mulai' => '10:00',
             'jam_selesai' => '12:00',
             'tujuan' => '', // empty
+            'keterangan' => 'Ada keterangan',
         ]);
 
         $responseFail->assertSessionHasErrors(['tujuan']);
+
+        // 5. Try making a reservation without keterangan (must fail validation)
+        $responseFail2 = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room19->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '12:00',
+            'tujuan' => 'Rapat Penting',
+            'keterangan' => '', // empty
+        ]);
+
+        $responseFail2->assertSessionHasErrors(['keterangan']);
     }
 
     public function test_admin_cannot_make_overlapping_reservations_in_the_same_room()
@@ -662,6 +675,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '09:00',
             'jam_selesai' => '11:00',
             'tujuan' => 'Another Meeting',
+            'keterangan' => 'Ada keterangan',
         ]);
 
         $response->assertRedirect('/history');
@@ -1050,6 +1064,7 @@ class ReservationTest extends TestCase
             'tanggal_mulai' => $start->toDateString(),
             'tanggal_selesai' => $end->toDateString(),
             'tujuan' => 'Rapat Runtutan',
+            'keterangan' => 'Ada keterangan',
         ]);
 
         $response->assertRedirect('/history');
@@ -1104,6 +1119,7 @@ class ReservationTest extends TestCase
             'tanggal_mulai' => $start->toDateString(),
             'tanggal_selesai' => $end->toDateString(),
             'tujuan' => 'Rapat Runtutan',
+            'keterangan' => 'Ada keterangan',
         ]);
 
         // Create an overlapping approved reservation for Tuesday (the middle day)

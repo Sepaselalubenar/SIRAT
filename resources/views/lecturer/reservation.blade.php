@@ -315,7 +315,7 @@
                         @enderror
 
                         <div id="container-keterangan">
-                            <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan <span id="keterangan-required-star" class="text-red-500">*</span></label>
                             <textarea
                                 name="keterangan"
                                 id="input-keterangan"
@@ -755,10 +755,10 @@ let currentSelectedRoom = null;
             inputEl.setAttribute('name', 'tujuan');
             starEl.classList.remove('hidden');
             
-            containerKeterangan.classList.add('hidden');
-            inputKeterangan.removeAttribute('name');
-            inputKeterangan.removeAttribute('required');
-            inputKeterangan.value = '';
+            containerKeterangan.classList.remove('hidden');
+            inputKeterangan.setAttribute('name', 'keterangan');
+            inputKeterangan.setAttribute('required', 'required');
+            document.getElementById('keterangan-required-star').classList.remove('hidden');
         } else {
             containerInput.classList.add('hidden');
             inputEl.removeAttribute('name');
@@ -770,6 +770,7 @@ let currentSelectedRoom = null;
             containerKeterangan.classList.remove('hidden');
             inputKeterangan.setAttribute('name', 'keterangan');
             inputKeterangan.setAttribute('required', 'required');
+            document.getElementById('keterangan-required-star').classList.remove('hidden');
         }
 
         // Set min date range inputs
@@ -860,9 +861,7 @@ function openConfirmModal() {
     const tujuan    = isFloor19 
         ? document.getElementById('input-tujuan-input').value.trim() 
         : document.getElementById('input-tujuan').value;
-    const keterangan= isFloor19 
-        ? '' 
-        : document.getElementById('input-keterangan').value.trim();
+    const keterangan= document.getElementById('input-keterangan').value.trim();
         
     const roomName  = document.getElementById('ringkasan-nama-ruangan').textContent;
     const roomInfo  = document.getElementById('ringkasan-lantai-ruangan').innerHTML;
@@ -956,7 +955,7 @@ function openConfirmModal() {
         return;
     }
 
-    if (!isFloor19 && !keterangan) {
+    if (!keterangan) {
         alert('Silakan isi keterangan reservasi.');
         return;
     }

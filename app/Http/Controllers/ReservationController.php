@@ -37,7 +37,7 @@ class ReservationController extends Controller
             'room_id' => 'required|exists:rooms,id',
             'tipe_reservasi' => 'nullable|in:biasa,sehari_penuh',
             'tujuan' => 'required|string|max:100',
-            'keterangan' => $isFloor19 ? 'nullable|string|max:200' : 'required|string|max:200',
+            'keterangan' => 'required|string|max:200',
         ];
 
         if ($tipeReservasi === 'sehari_penuh') {
@@ -164,7 +164,7 @@ class ReservationController extends Controller
                     'jam_mulai' => $jamMulai->format('H:i'),
                     'jam_selesai' => $jamSelesai->format('H:i'),
                     'tujuan' => $data['tujuan'],
-                    'keterangan' => $butuhApproval ? null : ($data['keterangan'] ?? null),
+                    'keterangan' => $data['keterangan'] ?? null,
                     // Lantai 19 wajib approval admin, lantai lain langsung disetujui kalau kosong.
                     'status' => $butuhApproval ? 'pending' : 'approved',
                     'group_id' => $groupId,
