@@ -96,9 +96,36 @@ class ReservationController extends Controller
         $this->pastikanDalamJamOperasional($jamMulai, $jamSelesai);
 
         $bentrokDates = [];
+        $dateTimes = [];
         foreach ($dates as $date) {
+            $dateJamMulai = $jamMulai->copy();
+            $dateJamSelesai = $jamSelesai->copy();
+
+            if ($tipeReservasi === 'sehari_penuh' && Carbon::parse($date)->isToday()) {
+                $now = Carbon::now();
+                $buka = Carbon::parse(self::JAM_BUKA);
+                $tutup = Carbon::parse(self::JAM_TUTUP);
+
+                if ($now->gt($tutup)) {
+                    throw ValidationException::withMessages([
+                        'tanggal_mulai' => 'Pemesanan sehari penuh untuk hari ini tidak bisa dilakukan karena jam operasional sudah selesai.',
+                    ]);
+                }
+
+                if ($now->gt($buka)) {
+                    $dateJamMulai = $now;
+                }
+            }
+
+            $dateTimes[$date] = [
+                'start' => $dateJamMulai,
+                'end' => $dateJamSelesai,
+            ];
+
             // Pastikan jam mulai belum lewat
-            $this->pastikanJamMulaiBelumLewat($date, $jamMulai);
+            if (!($tipeReservasi === 'sehari_penuh' && Carbon::parse($date)->isToday())) {
+                $this->pastikanJamMulaiBelumLewat($date, $dateJamMulai);
+            }
 
             // Pastikan minimal H+2 untuk lantai approval
             if ($butuhApproval) {
@@ -107,7 +134,7 @@ class ReservationController extends Controller
 
             // Pastikan ruangan kosong
             try {
-                $this->pastikanRuanganKosong($room, $date, $jamMulai, $jamSelesai);
+                $this->pastikanRuanganKosong($room, $date, $dateJamMulai, $dateJamSelesai);
             } catch (ValidationException $e) {
                 $bentrokDates[] = Carbon::parse($date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
             }
@@ -121,8 +148,10 @@ class ReservationController extends Controller
         }
 
         $reservations = [];
-        \Illuminate\Support\Facades\DB::transaction(function () use ($room, $user, $dates, $jamMulai, $jamSelesai, $data, $butuhApproval, &$reservations) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($room, $user, $dates, $dateTimes, $data, $butuhApproval, &$reservations) {
             foreach ($dates as $date) {
+                $jamMulai = $dateTimes[$date]['start'];
+                $jamSelesai = $dateTimes[$date]['end'];
                 $reservations[] = Reservation::create([
                     'room_id' => $room->id,
                     'user_id' => $user->id,

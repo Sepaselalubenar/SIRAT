@@ -906,5 +906,51 @@ class ReservationTest extends TestCase
         $response2->assertSessionHas('error');
         $this->assertEquals('cancelled', $resCancelled->fresh()->status);
     }
+
+    public function test_lecturer_can_make_full_day_reservation_for_today()
+    {
+        // Freeze time to a Wednesday morning (within operating hours)
+        Carbon::setTestNow(Carbon::parse('2026-07-15 10:30:00'));
+
+        $dosen = User::create([
+            'name' => 'Dosen Test Today',
+            'email' => 'dosentoday@test.com',
+            'role' => 'dosen',
+            'nip' => '12345679',
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3 Today',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $response = $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => '2026-07-15',
+            'tanggal_selesai' => '2026-07-15',
+            'tujuan' => 'Rapat Hari Ini',
+            'keterangan' => 'Keterangan rapat hari ini',
+        ]);
+
+        $response->assertRedirect('/history');
+        $response->assertSessionHasNoErrors();
+
+        // Assert reservation starts at current frozen time (10:30) and ends at 18:30
+        $this->assertDatabaseHas('reservations', [
+            'user_id' => $dosen->id,
+            'room_id' => $room->id,
+            'tanggal' => '2026-07-15',
+            'jam_mulai' => '10:30',
+            'jam_selesai' => '18:30',
+            'status' => 'approved',
+        ]);
+
+        // Clean up test now
+        Carbon::setTestNow();
+    }
 }
 

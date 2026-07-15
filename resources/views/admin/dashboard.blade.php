@@ -48,19 +48,6 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 gap-6">
-
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-gray-500">
-                Reservasi Disetujui
-            </h3>
-            <p class="text-4xl font-bold text-green-600 mt-4">
-                {{ $approvedReservations ?? 0 }}
-            </p>
-        </div>
-
-    </div>
-
     <div class="bg-white rounded-xl shadow p-6">
 
         <div class="flex justify-between items-center mb-6">

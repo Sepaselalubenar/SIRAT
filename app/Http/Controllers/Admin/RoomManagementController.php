@@ -242,14 +242,41 @@ class RoomManagementController extends Controller
 
         // Validate each date
         $bentrokDates = [];
+        $dateTimes = [];
         foreach ($dates as $date) {
-            $mulaiReservasi = \Illuminate\Support\Carbon::parse(
-                \Illuminate\Support\Carbon::parse($date)->toDateString() . ' ' . $jamMulai->format('H:i')
-            );
+            $dateJamMulai = $jamMulai->copy();
+            $dateJamSelesai = $jamSelesai->copy();
 
-            if ($mulaiReservasi->lte(now())) {
-                $errKey = ($tipeReservasi === 'sehari_penuh') ? 'tanggal_mulai' : 'jam_mulai';
-                return redirect()->back()->withErrors([$errKey => "Reservasi untuk tanggal {$date} tidak bisa diajukan karena jam mulainya sudah terlewat."])->withInput();
+            if ($tipeReservasi === 'sehari_penuh' && \Illuminate\Support\Carbon::parse($date)->isToday()) {
+                $now = \Illuminate\Support\Carbon::now();
+                $buka = \Illuminate\Support\Carbon::parse('07:00');
+                $tutup = \Illuminate\Support\Carbon::parse('18:30');
+
+                if ($now->gt($tutup)) {
+                    $errKey = ($tipeReservasi === 'sehari_penuh') ? 'tanggal_mulai' : 'jam_mulai';
+                    return redirect()->back()->withErrors([$errKey => "Reservasi untuk tanggal {$date} tidak bisa diajukan karena jam operasional sudah selesai."])->withInput();
+                }
+
+                if ($now->gt($buka)) {
+                    $dateJamMulai = $now;
+                }
+            }
+
+            $dateTimes[$date] = [
+                'start' => $dateJamMulai,
+                'end' => $dateJamSelesai,
+            ];
+
+            // Pastikan jam mulai belum lewat
+            if (!($tipeReservasi === 'sehari_penuh' && \Illuminate\Support\Carbon::parse($date)->isToday())) {
+                $mulaiReservasi = \Illuminate\Support\Carbon::parse(
+                    \Illuminate\Support\Carbon::parse($date)->toDateString() . ' ' . $dateJamMulai->format('H:i')
+                );
+
+                if ($mulaiReservasi->lte(now())) {
+                    $errKey = ($tipeReservasi === 'sehari_penuh') ? 'tanggal_mulai' : 'jam_mulai';
+                    return redirect()->back()->withErrors([$errKey => "Reservasi untuk tanggal {$date} tidak bisa diajukan karena jam mulainya sudah terlewat."])->withInput();
+                }
             }
 
             // Overlap check
@@ -261,8 +288,8 @@ class RoomManagementController extends Controller
             $overlap = \App\Models\Reservation::where('room_id', $roomId)
                 ->where('tanggal', $date)
                 ->whereIn('status', $statuses)
-                ->where('jam_mulai', '<', $jamSelesai->format('H:i:00'))
-                ->where('jam_selesai', '>', $jamMulai->format('H:i:00'))
+                ->where('jam_mulai', '<', $dateJamSelesai->format('H:i:00'))
+                ->where('jam_selesai', '>', $dateJamMulai->format('H:i:00'))
                 ->exists();
 
             if ($overlap) {
@@ -275,8 +302,10 @@ class RoomManagementController extends Controller
             return redirect()->back()->withErrors([$errKey => 'Ruangan tidak tersedia (sudah dipesan) pada hari berikut: ' . implode(', ', $bentrokDates) . '.'])->withInput();
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($roomId, $validated, $dates, $jamMulai, $jamSelesai) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($roomId, $validated, $dates, $dateTimes) {
             foreach ($dates as $date) {
+                $jamMulai = $dateTimes[$date]['start'];
+                $jamSelesai = $dateTimes[$date]['end'];
                 \App\Models\Reservation::create([
                     'room_id' => $roomId,
                     'user_id' => $validated['user_id'],
