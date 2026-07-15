@@ -89,7 +89,8 @@
                 <select name="tujuan" required class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="">Pilih Tujuan</option>
                     <option value="Sidang">Sidang</option>
-                    <option value="Meeting">Meeting</option>
+                    <option value="Rapat">Rapat</option>
+                    <option value="Bimbingan">Bimbingan</option>
                     <option value="Ujian Sidang Tugas Akhir">Ujian Sidang Tugas Akhir</option>
                     <option value="Seminar">Seminar</option>
                     <option value="Lainnya">Lainnya</option>

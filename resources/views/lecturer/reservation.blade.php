@@ -300,7 +300,8 @@
                             <select name="tujuan" id="input-tujuan" class="w-full border rounded-lg p-3 mb-1">
                                 <option value="">Pilih tujuan reservasi</option>
                                 <option value="Sidang" @selected(old('tujuan') === 'Sidang')>Sidang</option>
-                                <option value="Meeting" @selected(old('tujuan') === 'Meeting')>Meeting</option>
+                                <option value="Rapat" @selected(old('tujuan') === 'Rapat')>Rapat</option>
+                                <option value="Bimbingan" @selected(old('tujuan') === 'Bimbingan')>Bimbingan</option>
                                 <option value="Ujian Sidang Tugas Akhir" @selected(old('tujuan') === 'Ujian Sidang Tugas Akhir')>Ujian Sidang Tugas Akhir</option>
                                 <option value="Seminar" @selected(old('tujuan') === 'Seminar')>Seminar</option>
                                 <option value="Lainnya" @selected(old('tujuan') === 'Lainnya')>Lainnya</option>
