@@ -17,6 +17,17 @@
     <img src="{{ asset('logo-fte.png') }}" alt="Logo Fakultas Teknik Elektro Telkom University" class="h-8 lg:h-10 w-auto">
 </div>
 
+<!-- Top-Right Guide Button -->
+<div class="absolute top-4 right-4 lg:top-6 lg:right-6 z-50">
+    <button type="button" onclick="openGuideModal()" class="flex items-center gap-2 bg-white/95 hover:bg-white text-blue-700 font-bold py-2 px-3 lg:px-4 rounded-xl shadow-md border border-gray-100 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer text-sm">
+        <!-- Book Open Icon -->
+        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        Buku Panduan
+    </button>
+</div>
+
 <div class="min-h-screen flex items-center justify-center p-6">
 
     <div class="flex flex-col gap-4 w-full max-w-[440px]">
@@ -98,6 +109,85 @@
     </div>
 
 </div>
+
+<!-- Guide Modal -->
+<div id="guideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 opacity-0 pointer-events-none transition-all duration-300 ease-out hidden">
+    <!-- Backdrop overlay -->
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300" onclick="closeGuideModal()"></div>
+    
+    <!-- Modal Content Card -->
+    <div class="relative bg-white w-full max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/80 transform scale-95 transition-all duration-300 ease-out z-10">
+        <!-- Sticky Header -->
+        <div class="sticky top-0 bg-slate-50 border-b border-slate-200/80 px-6 py-4 flex items-center justify-between z-20">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-100/80 p-2 rounded-lg text-blue-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Buku Panduan Pengguna (Sisi Administrator)</h3>
+            </div>
+            <button type="button" onclick="closeGuideModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 p-2 rounded-lg transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Scrollable Body with Markdown Styled HTML -->
+        <div class="overflow-y-auto p-6 md:p-8 flex-1 markdown-content bg-white select-text">
+            {!! $guideHtml !!}
+        </div>
+
+        <!-- Sticky Footer -->
+        <div class="sticky bottom-0 bg-slate-50 border-t border-slate-200/80 px-6 py-4 flex items-center justify-end z-20">
+            <button type="button" onclick="closeGuideModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-sm shadow-sm transition-all cursor-pointer">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        const modalContent = modal.querySelector('.relative');
+        
+        // Prevent scroll on body
+        document.body.style.overflow = 'hidden';
+        
+        modal.classList.remove('hidden');
+        // Trigger reflow for animations to work
+        void modal.offsetWidth;
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+        
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        const modalContent = modal.querySelector('.relative');
+        
+        // Restore scroll on body
+        document.body.style.overflow = '';
+        
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        // Wait for animation to finish before adding hidden
+        setTimeout(() => {
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.add('hidden');
+            }
+        }, 300);
+    }
+</script>
 
 </body>
 

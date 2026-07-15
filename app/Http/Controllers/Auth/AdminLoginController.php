@@ -13,7 +13,12 @@ class AdminLoginController extends Controller
      */
     public function create()
     {
-        return view('auth.admin-login');
+        $guidePath = base_path('PANDUAN_ADMIN.md');
+        $guideHtml = '';
+        if (file_exists($guidePath)) {
+            $guideHtml = \Illuminate\Support\Str::markdown(file_get_contents($guidePath));
+        }
+        return view('auth.admin-login', compact('guideHtml'));
     }
 
     /**

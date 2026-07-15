@@ -1,3 +1,10 @@
+@php
+    $guidePath = base_path('PANDUAN_ADMIN.md');
+    $guideHtml = '';
+    if (file_exists($guidePath)) {
+        $guideHtml = \Illuminate\Support\Str::markdown(file_get_contents($guidePath));
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,6 +183,14 @@
                     </svg>
                     <span class="sidebar-text">Kelola Pengguna</span>
                 </a>
+
+                <button type="button" onclick="openGuideModal()" class="sidebar-nav-link w-full flex items-center gap-3 px-5 py-4 rounded-xl hover:bg-blue-600 mb-3 text-left transition duration-150 cursor-pointer">
+                    <!-- Book Open Icon -->
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span class="sidebar-text">Buku Panduan</span>
+                </button>
             </nav>
 
             <!-- Logout Section -->
@@ -216,9 +231,9 @@
                         <p class="font-semibold text-gray-800 text-sm leading-tight">{{ auth()->user()->name }}</p>
                         <p class="text-gray-500 text-xs mt-0.5">
                             @if(auth()->user()->admin_type === 1)
-                                Admin (Kecuali L19)
+                                Admin 
                             @elseif(auth()->user()->admin_type === 2)
-                                Admin (Lantai 19)
+                                Admin 
                             @else
                                 Admin
                             @endif
@@ -330,6 +345,86 @@
                 });
             }
         });
+    </script>
+
+    <!-- Guide Modal -->
+    <div id="guideModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6 opacity-0 pointer-events-none transition-all duration-300 ease-out hidden">
+        <!-- Backdrop overlay -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300" onclick="closeGuideModal()"></div>
+        
+        <!-- Modal Content Card -->
+        <div class="relative bg-white w-full max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/80 transform scale-95 transition-all duration-300 ease-out z-10">
+            <!-- Sticky Header -->
+            <div class="sticky top-0 bg-slate-50 border-b border-slate-200/80 px-6 py-4 flex items-center justify-between z-20">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-100/80 p-2 rounded-lg text-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">Buku Panduan Pengguna (Sisi Administrator)</h3>
+                </div>
+                <button type="button" onclick="closeGuideModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 p-2 rounded-lg transition-colors cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Scrollable Body with Markdown Styled HTML -->
+            <div class="overflow-y-auto p-6 md:p-8 flex-1 markdown-content bg-white select-text text-gray-800">
+                {!! $guideHtml !!}
+            </div>
+
+            <!-- Sticky Footer -->
+            <div class="sticky bottom-0 bg-slate-50 border-t border-slate-200/80 px-6 py-4 flex items-center justify-end z-20">
+                <button type="button" onclick="closeGuideModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-sm shadow-sm transition-all cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openGuideModal() {
+            // Close mobile sidebar drawer if open
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+            if (backdrop && !backdrop.classList.contains('hidden')) {
+                backdrop.classList.add('hidden');
+            }
+
+            const modal = document.getElementById('guideModal');
+            const modalContent = modal.querySelector('.relative');
+            
+            document.body.style.overflow = 'hidden';
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeGuideModal() {
+            const modal = document.getElementById('guideModal');
+            const modalContent = modal.querySelector('.relative');
+            
+            document.body.style.overflow = '';
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                if (modal.classList.contains('opacity-0')) {
+                    modal.classList.add('hidden');
+                }
+            }, 300);
+        }
     </script>
 </body>
 </html>
