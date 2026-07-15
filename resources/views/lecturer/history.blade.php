@@ -69,7 +69,20 @@
                         @endphp
                         <tr class="history-row border-b last:border-b-0" data-status="{{ $rowStatus }}">
                             <td class="py-4">
-                                <p class="font-medium">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
+                                @if(isset($r->is_group) && $r->is_group)
+                                    @php
+                                        $sortedDates = collect($r->group_dates)->sort();
+                                        $firstDate = \Illuminate\Support\Carbon::parse($sortedDates->first())->translatedFormat('d M Y');
+                                        $lastDate = \Illuminate\Support\Carbon::parse($sortedDates->last())->translatedFormat('d M Y');
+                                        $allDatesFormatted = collect($r->group_dates)->map(fn($d) => \Illuminate\Support\Carbon::parse($d)->translatedFormat('d M Y'))->implode(', ');
+                                    @endphp
+                                    <p class="font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs inline-block mb-1">Multi-Hari ({{ count($r->group_dates) }} hari)</p>
+                                    <p class="font-semibold text-gray-700 cursor-help" title="{{ $allDatesFormatted }}">
+                                        {{ $firstDate }} s/d {{ $lastDate }}
+                                    </p>
+                                @else
+                                    <p class="font-medium">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
+                                @endif
                                 <p class="text-xs text-gray-500 mt-1">
                                     {{ substr($r->jam_mulai, 0, 5) }} - {{ substr($r->jam_selesai, 0, 5) }} WIB
                                 </p>
@@ -146,7 +159,20 @@
                     <div class="grid grid-cols-2 gap-4 py-2.5 my-2.5 border-y border-gray-200/60 text-xs">
                         <div>
                             <span class="text-[10px] text-gray-400 font-bold tracking-wider block mb-0.5">WAKTU PEMAKAIAN</span>
-                            <p class="font-semibold text-gray-700">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
+                            @if(isset($r->is_group) && $r->is_group)
+                                @php
+                                    $sortedDates = collect($r->group_dates)->sort();
+                                    $firstDate = \Illuminate\Support\Carbon::parse($sortedDates->first())->translatedFormat('d M Y');
+                                    $lastDate = \Illuminate\Support\Carbon::parse($sortedDates->last())->translatedFormat('d M Y');
+                                    $allDatesFormatted = collect($r->group_dates)->map(fn($d) => \Illuminate\Support\Carbon::parse($d)->translatedFormat('d M Y'))->implode(', ');
+                                @endphp
+                                <span class="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-bold block mb-1 w-max">Multi-Hari ({{ count($r->group_dates) }} hari)</span>
+                                <p class="font-semibold text-gray-700 cursor-help" title="{{ $allDatesFormatted }}">
+                                    {{ $firstDate }} s/d {{ $lastDate }}
+                                </p>
+                            @else
+                                <p class="font-semibold text-gray-700">{{ \Illuminate\Support\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</p>
+                            @endif
                             <p class="text-gray-500 mt-0.5">{{ substr($r->jam_mulai, 0, 5) }} - {{ substr($r->jam_selesai, 0, 5) }} WIB</p>
                         </div>
                         <div>

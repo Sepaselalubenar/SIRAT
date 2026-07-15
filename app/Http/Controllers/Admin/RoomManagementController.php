@@ -306,7 +306,12 @@ class RoomManagementController extends Controller
             return redirect()->back()->withErrors([$errKey => 'Ruangan tidak tersedia (sudah dipesan) pada hari berikut: ' . implode(', ', $bentrokDates) . '.'])->withInput();
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($roomId, $validated, $dates, $dateTimes) {
+        $groupId = null;
+        if ($tipeReservasi === 'sehari_penuh') {
+            $groupId = (string) \Illuminate\Support\Str::uuid();
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($roomId, $validated, $dates, $dateTimes, $groupId) {
             foreach ($dates as $date) {
                 $jamMulai = $dateTimes[$date]['start'];
                 $jamSelesai = $dateTimes[$date]['end'];
@@ -320,6 +325,7 @@ class RoomManagementController extends Controller
                     'keterangan' => $validated['keterangan'] ?? null,
                     'status' => 'approved', // Admin booking is automatically approved
                     'approved_by' => auth()->id(),
+                    'group_id' => $groupId,
                 ]);
             }
         });

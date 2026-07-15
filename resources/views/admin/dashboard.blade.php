@@ -64,7 +64,20 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        @if(isset($reservation->is_group) && $reservation->is_group)
+                            @php
+                                $sortedDates = collect($reservation->group_dates)->sort();
+                                $firstDate = \Illuminate\Support\Carbon::parse($sortedDates->first())->translatedFormat('d M Y');
+                                $lastDate = \Illuminate\Support\Carbon::parse($sortedDates->last())->translatedFormat('d M Y');
+                                $allDatesFormatted = collect($reservation->group_dates)->map(fn($d) => \Illuminate\Support\Carbon::parse($d)->translatedFormat('d M Y'))->implode(', ');
+                            @endphp
+                            <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs font-semibold">Multi-Hari ({{ count($reservation->group_dates) }} hari)</span>
+                            <span class="font-medium text-gray-700 cursor-help" title="{{ $allDatesFormatted }}">
+                                {{ $firstDate }} s/d {{ $lastDate }}
+                            </span>
+                        @else
+                            {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        @endif
                         &middot; {{ $reservation->tujuan }}
                         &middot; <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">{{ substr($reservation->jam_mulai, 0, 5) }} - {{ substr($reservation->jam_selesai, 0, 5) }}</span>
                         &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
@@ -111,7 +124,20 @@
                     </h3>
                     <p class="text-gray-500 text-sm">
                         {{ $reservation->user->name ?? '-' }} &middot;
-                        {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        @if(isset($reservation->is_group) && $reservation->is_group)
+                            @php
+                                $sortedDates = collect($reservation->group_dates)->sort();
+                                $firstDate = \Illuminate\Support\Carbon::parse($sortedDates->first())->translatedFormat('d M Y');
+                                $lastDate = \Illuminate\Support\Carbon::parse($sortedDates->last())->translatedFormat('d M Y');
+                                $allDatesFormatted = collect($reservation->group_dates)->map(fn($d) => \Illuminate\Support\Carbon::parse($d)->translatedFormat('d M Y'))->implode(', ');
+                            @endphp
+                            <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs font-semibold">Multi-Hari ({{ count($reservation->group_dates) }} hari)</span>
+                            <span class="font-medium text-gray-700 cursor-help" title="{{ $allDatesFormatted }}">
+                                {{ $firstDate }} s/d {{ $lastDate }}
+                            </span>
+                        @else
+                            {{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                        @endif
                         &middot; {{ $reservation->tujuan }}
                         &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
                     </p>

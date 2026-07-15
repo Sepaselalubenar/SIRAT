@@ -887,15 +887,16 @@ function openConfirmModal() {
         // Sunday validation on frontend too!
         let tempDate = new Date(tanggalMulai + 'T00:00:00');
         let endDate = new Date(tanggalSelesai + 'T00:00:00');
-        let hasSunday = false;
+        let totalDays = 0;
+        let sundayCount = 0;
         while (tempDate <= endDate) {
+            totalDays++;
             if (tempDate.getDay() === 0) {
-                hasSunday = true;
-                break;
+                sundayCount++;
             }
             tempDate.setDate(tempDate.getDate() + 1);
         }
-        if (hasSunday) {
+        if (sundayCount === totalDays) {
             alert('Pemesanan ditutup untuk hari Minggu. Silakan sesuaikan rentang tanggal Anda.');
             return;
         }

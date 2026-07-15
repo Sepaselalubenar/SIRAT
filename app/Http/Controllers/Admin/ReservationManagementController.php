@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Mail\ReservationCancelledMail;
+use App\Mail\MultiDayReservationStatusMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -83,16 +84,27 @@ class ReservationManagementController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk membatalkan reservasi ini.');
         }
 
-        $reservation->update([
-            'status'            => 'cancelled',
-            'alasan_pembatalan' => $request->alasan_pembatalan,
-            'approved_by'       => auth()->id(),
-        ]);
+        $reservationsToCancel = $reservation->group_id
+            ? Reservation::where('group_id', $reservation->group_id)->whereIn('status', ['pending', 'approved'])->get()
+            : collect([$reservation]);
+
+        foreach ($reservationsToCancel as $res) {
+            $res->update([
+                'status'            => 'cancelled',
+                'alasan_pembatalan' => $request->alasan_pembatalan,
+                'approved_by'       => auth()->id(),
+            ]);
+        }
 
         // Kirim email notifikasi ke dosen
-        $reservation->load(['room', 'user']);
         try {
-            Mail::to($reservation->user->email)->send(new ReservationCancelledMail($reservation));
+            if ($reservation->group_id) {
+                $reservationsToCancel->load(['room', 'user']);
+                Mail::to($reservation->user->email)->send(new MultiDayReservationStatusMail($reservationsToCancel, 'cancelled'));
+            } else {
+                $reservation->load(['room', 'user']);
+                Mail::to($reservation->user->email)->send(new ReservationCancelledMail($reservation));
+            }
         } catch (\Throwable $e) {
             logger()->error('Gagal mengirim email pembatalan reservasi #' . $reservation->id . ': ' . $e->getMessage());
         }
@@ -108,7 +120,11 @@ class ReservationManagementController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk menghapus reservasi ini.');
         }
 
-        $reservation->delete();
+        if ($reservation->group_id) {
+            Reservation::where('group_id', $reservation->group_id)->delete();
+        } else {
+            $reservation->delete();
+        }
 
         return redirect()->back()->with('success', 'Data reservasi berhasil dihapus.');
     }

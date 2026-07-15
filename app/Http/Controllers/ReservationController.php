@@ -147,8 +147,13 @@ class ReservationController extends Controller
             ]);
         }
 
+        $groupId = null;
+        if ($tipeReservasi === 'sehari_penuh') {
+            $groupId = (string) \Illuminate\Support\Str::uuid();
+        }
+
         $reservations = [];
-        \Illuminate\Support\Facades\DB::transaction(function () use ($room, $user, $dates, $dateTimes, $data, $butuhApproval, &$reservations) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($room, $user, $dates, $dateTimes, $data, $butuhApproval, $groupId, &$reservations) {
             foreach ($dates as $date) {
                 $jamMulai = $dateTimes[$date]['start'];
                 $jamSelesai = $dateTimes[$date]['end'];
@@ -162,6 +167,7 @@ class ReservationController extends Controller
                     'keterangan' => $butuhApproval ? null : ($data['keterangan'] ?? null),
                     // Lantai 19 wajib approval admin, lantai lain langsung disetujui kalau kosong.
                     'status' => $butuhApproval ? 'pending' : 'approved',
+                    'group_id' => $groupId,
                 ]);
             }
         });
@@ -280,15 +286,25 @@ class ReservationController extends Controller
             return redirect()->back()->with('error', 'Hanya reservasi dengan status pending atau disetujui yang dapat dibatalkan.');
         }
 
-        $isPast = Carbon::parse($reservation->tanggal . ' ' . $reservation->jam_selesai)->isPast();
-        if ($isPast) {
-            return redirect()->back()->with('error', 'Reservasi yang sudah terlewati tidak dapat dibatalkan.');
+        $reservationsToCancel = $reservation->group_id
+            ? Reservation::where('group_id', $reservation->group_id)->whereIn('status', ['pending', 'approved'])->get()
+            : collect([$reservation]);
+
+        $cancelledCount = 0;
+        foreach ($reservationsToCancel as $res) {
+            $resIsPast = Carbon::parse($res->tanggal . ' ' . $res->jam_selesai)->isPast();
+            if (!$resIsPast) {
+                $res->update([
+                    'status' => 'cancelled',
+                    'alasan_pembatalan' => 'Dibatalkan oleh user',
+                ]);
+                $cancelledCount++;
+            }
         }
 
-        $reservation->update([
-            'status' => 'cancelled',
-            'alasan_pembatalan' => 'Dibatalkan oleh user',
-        ]);
+        if ($cancelledCount === 0) {
+            return redirect()->back()->with('error', 'Reservasi yang sudah terlewati tidak dapat dibatalkan.');
+        }
 
         return redirect()->back()->with('success', 'Reservasi Anda berhasil dibatalkan.');
     }

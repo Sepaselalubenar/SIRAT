@@ -21,6 +21,7 @@ class Reservation extends Model
         'alasan_penolakan',
         'alasan_pembatalan',
         'approved_by',
+        'group_id',
     ];
 
     public function room()

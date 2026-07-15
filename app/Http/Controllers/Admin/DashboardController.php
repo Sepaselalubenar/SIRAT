@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Room;
 use App\Mail\ReservationStatusMail;
+use App\Mail\MultiDayReservationStatusMail;
 use Illuminate\Support\Facades\Mail;
 
 class DashboardController extends Controller
@@ -53,7 +54,19 @@ class DashboardController extends Controller
             });
         }
 
-        $pendingList = $pendingListQuery->orderBy('tanggal')->get();
+        $pendingRaw = $pendingListQuery->orderBy('tanggal')->get();
+        $pendingList = [];
+        $pendingGroups = $pendingRaw->groupBy(function ($item) {
+            return $item->group_id ?? 'single_' . $item->id;
+        });
+
+        foreach ($pendingGroups as $key => $items) {
+            $main = $items->first();
+            $main->is_group = !str_starts_with($key, 'single_');
+            $main->group_dates = $items->pluck('tanggal')->toArray();
+            $main->group_reservations = $items;
+            $pendingList[] = $main;
+        }
 
         // Ruangan yang sedang/akan dipakai (reservasi approved, tanggal hari ini atau ke depan).
         $approvedListQuery = Reservation::with(['room', 'user'])
@@ -70,7 +83,19 @@ class DashboardController extends Controller
             });
         }
 
-        $approvedList = $approvedListQuery->orderBy('tanggal')->get();
+        $approvedRaw = $approvedListQuery->orderBy('tanggal')->get();
+        $approvedList = [];
+        $approvedGroups = $approvedRaw->groupBy(function ($item) {
+            return $item->group_id ?? 'single_' . $item->id;
+        });
+
+        foreach ($approvedGroups as $key => $items) {
+            $main = $items->first();
+            $main->is_group = !str_starts_with($key, 'single_');
+            $main->group_dates = $items->pluck('tanggal')->toArray();
+            $main->group_reservations = $items;
+            $approvedList[] = $main;
+        }
 
         return view('admin.dashboard', compact(
             'totalRooms',
@@ -89,31 +114,48 @@ class DashboardController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk menyetujui reservasi ini.');
         }
 
-        $jamMulai = \Illuminate\Support\Carbon::parse($reservation->jam_mulai)->format('H:i:00');
-        $jamSelesai = \Illuminate\Support\Carbon::parse($reservation->jam_selesai)->format('H:i:00');
+        $reservationsToApprove = $reservation->group_id
+            ? Reservation::where('group_id', $reservation->group_id)->where('status', 'pending')->get()
+            : collect([$reservation]);
 
-        // Check if there is an overlapping reservation that is already approved
-        $overlap = Reservation::where('room_id', $reservation->room_id)
-            ->where('tanggal', $reservation->tanggal)
-            ->where('status', 'approved')
-            ->where('id', '!=', $reservation->id)
-            ->where('jam_mulai', '<', $jamSelesai)
-            ->where('jam_selesai', '>', $jamMulai)
-            ->exists();
+        $bentrokDates = [];
+        foreach ($reservationsToApprove as $res) {
+            $jamMulai = \Illuminate\Support\Carbon::parse($res->jam_mulai)->format('H:i:00');
+            $jamSelesai = \Illuminate\Support\Carbon::parse($res->jam_selesai)->format('H:i:00');
 
-        if ($overlap) {
-            return redirect()->back()->with('error', 'Reservasi ini tidak dapat disetujui karena bentrok dengan reservasi lain yang sudah disetujui.');
+            $overlap = Reservation::where('room_id', $res->room_id)
+                ->where('tanggal', $res->tanggal)
+                ->where('status', 'approved')
+                ->where('id', '!=', $res->id)
+                ->where('jam_mulai', '<', $jamSelesai)
+                ->where('jam_selesai', '>', $jamMulai)
+                ->exists();
+
+            if ($overlap) {
+                $bentrokDates[] = \Illuminate\Support\Carbon::parse($res->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+            }
         }
 
-        $reservation->update([
-            'status' => 'approved',
-            'approved_by' => auth()->id(),
-        ]);
+        if (!empty($bentrokDates)) {
+            return redirect()->back()->with('error', 'Reservasi tidak dapat disetujui karena bentrok pada tanggal berikut: ' . implode(', ', $bentrokDates) . '.');
+        }
+
+        foreach ($reservationsToApprove as $res) {
+            $res->update([
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+            ]);
+        }
 
         // Kirim email notifikasi ke dosen
-        $reservation->load(['room', 'user']);
         try {
-            Mail::to($reservation->user->email)->send(new ReservationStatusMail($reservation));
+            if ($reservation->group_id) {
+                $reservationsToApprove->load(['room', 'user']);
+                Mail::to($reservation->user->email)->send(new MultiDayReservationStatusMail($reservationsToApprove, 'approved'));
+            } else {
+                $reservation->load(['room', 'user']);
+                Mail::to($reservation->user->email)->send(new ReservationStatusMail($reservation));
+            }
         } catch (\Throwable $e) {
             logger()->error('Gagal mengirim email status disetujui #' . $reservation->id . ': ' . $e->getMessage());
         }
@@ -133,16 +175,27 @@ class DashboardController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk menolak reservasi ini.');
         }
 
-        $reservation->update([
-            'status' => 'rejected',
-            'alasan_penolakan' => $request->alasan_penolakan,
-            'approved_by' => auth()->id(),
-        ]);
+        $reservationsToReject = $reservation->group_id
+            ? Reservation::where('group_id', $reservation->group_id)->where('status', 'pending')->get()
+            : collect([$reservation]);
+
+        foreach ($reservationsToReject as $res) {
+            $res->update([
+                'status' => 'rejected',
+                'alasan_penolakan' => $request->alasan_penolakan,
+                'approved_by' => auth()->id(),
+            ]);
+        }
 
         // Kirim email notifikasi ke dosen
-        $reservation->load(['room', 'user']);
         try {
-            Mail::to($reservation->user->email)->send(new ReservationStatusMail($reservation));
+            if ($reservation->group_id) {
+                $reservationsToReject->load(['room', 'user']);
+                Mail::to($reservation->user->email)->send(new MultiDayReservationStatusMail($reservationsToReject, 'rejected'));
+            } else {
+                $reservation->load(['room', 'user']);
+                Mail::to($reservation->user->email)->send(new ReservationStatusMail($reservation));
+            }
         } catch (\Throwable $e) {
             logger()->error('Gagal mengirim email status ditolak #' . $reservation->id . ': ' . $e->getMessage());
         }
