@@ -10,9 +10,11 @@
             <h1 class="text-3xl font-bold text-gray-800">Daftar Ruangan</h1>
             <p class="text-gray-500 mt-1">Kelola data ruangan, fasilitas, dan foto ruangan untuk sistem reservasi.</p>
         </div>
-        <button type="button" onclick="toggleModal('create', true)" class="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition-all duration-200">
-            <span class="mr-2 text-lg font-bold">+</span> Tambah Ruangan
-        </button>
+        @if(!auth()->user()->isAdmin2())
+            <button type="button" onclick="toggleModal('create', true)" class="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition-all duration-200">
+                <span class="mr-2 text-lg font-bold">+</span> Tambah Ruangan
+            </button>
+        @endif
     </div>
 
     <!-- Alert Success -->
@@ -120,7 +122,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 <h3 class="mt-4 text-lg font-bold text-gray-900">Belum ada ruangan</h3>
-                <p class="mt-2 text-sm text-gray-500">Silakan tambahkan ruangan baru dengan menekan tombol "+ Tambah Ruangan".</p>
+                @if(!auth()->user()->isAdmin2())
+                    <p class="mt-2 text-sm text-gray-500">Silakan tambahkan ruangan baru dengan menekan tombol "+ Tambah Ruangan".</p>
+                @endif
             </div>
         @endforelse
     </div>

@@ -117,6 +117,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'tujuan' => 'Sidang Skripsi Kelompok 1',
+            'keterangan' => 'Butuh LCD',
         ]);
 
         $response1->assertRedirect('/history');
@@ -128,6 +129,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '09:00',
             'jam_selesai' => '11:00',
             'tujuan' => 'Sidang Skripsi Kelompok 2',
+            'keterangan' => 'Sidang paralel',
         ]);
 
         $response2->assertSessionHasErrors(['jam_mulai']);
@@ -227,6 +229,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'tujuan' => 'Rapat Admin',
+            'keterangan' => 'Keterangan rapat admin',
         ]);
 
         $response1->assertRedirect();
@@ -245,6 +248,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '09:00',
             'jam_selesai' => '11:00',
             'tujuan' => 'Rapat Admin 2',
+            'keterangan' => 'Keterangan rapat admin 2',
         ]);
 
         $response2->assertSessionHasErrors(['jam_mulai']);
@@ -361,6 +365,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '11:00',
             'jam_selesai' => '13:00',
             'tujuan' => 'Rapat Admin 1',
+            'keterangan' => 'Keterangan admin 1',
         ]);
         $responseReserve->assertStatus(403);
     }
@@ -414,6 +419,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '11:00',
             'jam_selesai' => '13:00',
             'tujuan' => 'Rapat Admin 2',
+            'keterangan' => 'Keterangan admin 2',
         ]);
         $responseReserve->assertStatus(403);
     }
@@ -490,6 +496,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'tujuan' => 'Rapat Hari Minggu',
+            'keterangan' => 'Rapat di hari Minggu',
         ]);
 
         $response->assertSessionHasErrors(['tanggal']);
@@ -521,6 +528,7 @@ class ReservationTest extends TestCase
             'tanggal_mulai' => $saturday->toDateString(),
             'tanggal_selesai' => $monday->toDateString(),
             'tujuan' => 'Rapat Akhir Pekan',
+            'keterangan' => 'Keterangan akhir pekan',
         ]);
 
         $response->assertRedirect('/history');
@@ -566,6 +574,7 @@ class ReservationTest extends TestCase
             'tanggal_mulai' => $start->toDateString(),
             'tanggal_selesai' => $end->toDateString(),
             'tujuan' => 'Rapat Panjang',
+            'keterangan' => 'Rapat panjang',
         ]);
 
         $response->assertSessionHasErrors(['tanggal_selesai']);
@@ -606,6 +615,7 @@ class ReservationTest extends TestCase
             'tanggal_mulai' => $start->toDateString(),
             'tanggal_selesai' => $end->toDateString(),
             'tujuan' => 'Rapat Admin Panjang',
+            'keterangan' => 'Keterangan rapat admin panjang',
         ]);
 
         $response->assertRedirect();
@@ -698,6 +708,7 @@ class ReservationTest extends TestCase
             'jam_mulai' => '10:00',
             'jam_selesai' => '12:00',
             'tujuan' => 'Rapat Pegawai Bulanan',
+            'keterangan' => 'Keterangan rapat pegawai',
         ]);
 
         $responseReserve->assertRedirect('/history');

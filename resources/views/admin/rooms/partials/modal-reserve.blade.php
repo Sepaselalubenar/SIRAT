@@ -98,8 +98,8 @@
 
             <!-- Keterangan -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan (Opsional)</label>
-                <textarea name="keterangan" rows="3" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Catatan tambahan mengenai reservasi..."></textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan *</label>
+                <textarea name="keterangan" required rows="3" class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Catatan tambahan mengenai reservasi..."></textarea>
             </div>
 
             <div class="pt-6 border-t flex justify-end gap-3">

@@ -314,14 +314,15 @@
                         @enderror
 
                         <div id="container-keterangan">
-                            <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan (Opsional)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Keterangan <span class="text-red-500">*</span></label>
                             <textarea
                                 name="keterangan"
                                 id="input-keterangan"
                                 maxlength="200"
                                 rows="3"
-                                placeholder="Tambahkan keterangan jika diperlukan"
+                                placeholder="Masukkan keterangan reservasi"
                                 class="w-full border rounded-lg p-3"
+                                required
                             >{{ old('keterangan') }}</textarea>
                             @error('keterangan')
                                 <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -755,6 +756,7 @@ let currentSelectedRoom = null;
             
             containerKeterangan.classList.add('hidden');
             inputKeterangan.removeAttribute('name');
+            inputKeterangan.removeAttribute('required');
             inputKeterangan.value = '';
         } else {
             containerInput.classList.add('hidden');
@@ -766,6 +768,7 @@ let currentSelectedRoom = null;
             
             containerKeterangan.classList.remove('hidden');
             inputKeterangan.setAttribute('name', 'keterangan');
+            inputKeterangan.setAttribute('required', 'required');
         }
 
         // Set min date range inputs
@@ -948,6 +951,11 @@ function openConfirmModal() {
         } else {
             alert('Silakan pilih tujuan reservasi.');
         }
+        return;
+    }
+
+    if (!isFloor19 && !keterangan) {
+        alert('Silakan isi keterangan reservasi.');
         return;
     }
 

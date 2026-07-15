@@ -36,7 +36,7 @@ class DosenLoginController extends Controller
         if (! $user) {
             return back()
                 ->withInput($request->only('nip', 'email'))
-                ->withErrors(['nip' => 'NIP dan email tidak ditemukan atau tidak cocok. Hubungi CS TULT jika Anda merasa ini kesalahan.']);
+                ->withErrors(['nip' => 'NIP dan email tidak ditemukan atau tidak cocok. Hubungi LAA FTE jika Anda merasa ini kesalahan']);
         }
 
         Auth::login($user);

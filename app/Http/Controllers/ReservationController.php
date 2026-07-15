@@ -29,11 +29,15 @@ class ReservationController extends Controller
     {
         $tipeReservasi = $request->input('tipe_reservasi') ?: 'biasa';
 
+        $roomId = $request->input('room_id');
+        $room = Room::find($roomId);
+        $isFloor19 = $room && (string) $room->lantai === self::LANTAI_APPROVAL;
+
         $rules = [
             'room_id' => 'required|exists:rooms,id',
             'tipe_reservasi' => 'nullable|in:biasa,sehari_penuh',
             'tujuan' => 'required|string|max:100',
-            'keterangan' => 'nullable|string|max:200',
+            'keterangan' => $isFloor19 ? 'nullable|string|max:200' : 'required|string|max:200',
         ];
 
         if ($tipeReservasi === 'sehari_penuh') {

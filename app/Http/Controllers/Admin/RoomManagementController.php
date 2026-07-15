@@ -35,6 +35,10 @@ class RoomManagementController extends Controller
 
     public function store(Request $request)
     {
+        if (auth()->user()->isAdmin2()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menambahkan ruangan.');
+        }
+
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'jenis' => 'nullable|string|max:255',
@@ -187,7 +191,7 @@ class RoomManagementController extends Controller
             'user_id' => 'required|exists:users,id',
             'tipe_reservasi' => 'nullable|in:biasa,sehari_penuh',
             'tujuan' => 'required|string|max:100',
-            'keterangan' => 'nullable|string|max:200',
+            'keterangan' => 'required|string|max:200',
         ];
 
         if ($tipeReservasi === 'sehari_penuh') {
