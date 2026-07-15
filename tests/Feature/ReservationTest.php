@@ -952,5 +952,28 @@ class ReservationTest extends TestCase
         // Clean up test now
         Carbon::setTestNow();
     }
+
+    public function test_admin2_cannot_delete_room()
+    {
+        $admin2 = User::create([
+            'name' => 'Admin 2 Test',
+            'email' => 'admin2@test.com',
+            'role' => 'admin',
+            'admin_type' => 2,
+            'password' => bcrypt('password'),
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L19',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '19',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $response = $this->actingAs($admin2)->delete("/admin/rooms/{$room->id}");
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('rooms', ['id' => $room->id]);
+    }
 }
 

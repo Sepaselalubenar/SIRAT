@@ -106,6 +106,7 @@
                                 class="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-colors duration-150 cursor-pointer">
                             Edit
                         </button>
+                        @if(!auth()->user()->isAdmin2())
                         <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus ruangan ini? Semua foto juga akan dihapus.');">
                             @csrf
                             @method('DELETE')
@@ -113,6 +114,7 @@
                                 Hapus
                             </button>
                         </form>
+                        @endif
                     </div>
                 </div>
             </div>

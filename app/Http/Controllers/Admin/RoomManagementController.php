@@ -105,6 +105,10 @@ class RoomManagementController extends Controller
 
     public function destroy($id)
     {
+        if (auth()->user()->isAdmin2()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus ruangan.');
+        }
+
         $room = Room::findOrFail($id);
         $this->authorizeRoom($room);
 

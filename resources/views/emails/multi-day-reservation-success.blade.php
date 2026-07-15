@@ -33,7 +33,7 @@
                                 <td align="center" style="padding: 24px 0 0 0;">
                                     @if($firstReservation->status === 'approved')
                                         <span style="display:inline-block; background:#dcfce7; color:#15803d; padding:8px 22px; border-radius:999px; font-size:14px; font-weight:700; letter-spacing:0.3px;">
-                                            ✅ &nbsp; Reservasi Disetujui Otomatis
+                                            ✅ &nbsp; Reservasi Disetujui
                                         </span>
                                     @else
                                         <span style="display:inline-block; background:#fef9c3; color:#a16207; padding:8px 22px; border-radius:999px; font-size:14px; font-weight:700; letter-spacing:0.3px;">
@@ -52,7 +52,7 @@
                         <p style="margin:0; font-size:16px; color:#374151;">Halo, <strong>{{ $firstReservation->user->name }}</strong>,</p>
                         <p style="margin:10px 0 0; font-size:15px; color:#6b7280; line-height:1.6;">
                             @if($firstReservation->status === 'approved')
-                                Reservasi ruangan Anda telah <strong style="color:#15803d;">berhasil dibuat dan langsung disetujui</strong>. Berikut adalah rincian reservasi Anda:
+                                Reservasi ruangan Anda telah <strong style="color:#15803d;">berhasil dibuat dan disetujui</strong>. Berikut adalah rincian reservasi Anda:
                             @else
                                 Pengajuan reservasi ruangan Anda telah <strong style="color:#a16207;">berhasil dikirim</strong> dan sedang menunggu persetujuan dari admin. Berikut rinciannya:
                             @endif
