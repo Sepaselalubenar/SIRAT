@@ -1,4 +1,4 @@
-# PANDUAN PENGGUNA APLIKASI SIRAT - DOSEN / PEGAWAI
+# PANDUAN PENGGUNA APLIKASI SIRAT - DOSEN / TPA
 ### (Sistem Reservasi Ruangan Fakultas Teknik Elektro)
 
 Aplikasi **SIRAT** adalah platform berbasis web yang digunakan untuk mengelola dan memfasilitasi peminjaman serta reservasi ruangan di Fakultas Teknik Elektro. 
@@ -6,8 +6,8 @@ Aplikasi **SIRAT** adalah platform berbasis web yang digunakan untuk mengelola d
 ---
 
 ## DAFTAR ISI
-1. [Peran Pengguna - Sisi Dosen / Pegawai](#1-peran-pengguna---sisi-dosen-pegawai)
-2. [Cara Login Dosen/Pegawai](#2-cara-login-dosenpegawai)
+1. [Peran Pengguna - Sisi Dosen / TPA](#1-peran-pengguna---sisi-dosen-tpa)
+2. [Cara Login Dosen/TPA](#2-cara-login-dosentpa)
 3. [Melihat Daftar & Detail Ruangan](#3-melihat-daftar--detail-ruangan)
 4. [Prosedur Pengajuan Reservasi](#4-prosedur-pengajuan-reservasi)
    - [Reservasi Biasa (Single Day / Per Jam)](#1-reservasi-biasa-single-day--per-jam)
@@ -21,19 +21,19 @@ Aplikasi **SIRAT** adalah platform berbasis web yang digunakan untuk mengelola d
 
 | Peran (Role) | Ruang Lingkup Otoritas | Fitur Utama |
 | :--- | :--- | :--- |
-| **Dosen / Pegawai (Lecturer)** | Seluruh ruangan FTE | Melihat jadwal kalender, melihat ketersediaan ruangan, melakukan pengajuan reservasi (biasa atau sehari penuh), membatalkan reservasi aktif secara mandiri, dan melihat riwayat pribadinya. |
+| **Dosen / TPA** | Seluruh ruangan FTE | Melihat jadwal kalender, melihat ketersediaan ruangan, melakukan pengajuan reservasi (biasa atau sehari penuh), membatalkan reservasi aktif secara mandiri, dan melihat riwayat pribadinya. |
 
 ---
 
-## 2. CARA LOGIN DOSEN/PEGAWAI
-Untuk masuk ke sistem SIRAT sebagai Dosen/Pegawai:
+## 2. CARA LOGIN DOSEN/TPA
+Untuk masuk ke sistem SIRAT sebagai Dosen/TPA:
 1. Akses halaman utama aplikasi di URL: 
 2. Masukkan **NIP** dan **Email** resmi yang telah didaftarkan oleh Administrator.
 3. Klik tombol **Masuk ke Dashboard**.
 4. Sistem akan mencocokkan NIP & Email Anda. Jika sesuai, Anda akan diarahkan ke halaman **Dashboard**.
 
 > [!NOTE]
-> Akun Dosen/Pegawai tidak menggunakan kata sandi (password). Keamanan login didasarkan pada kecocokan pasangan NIP dan Email unik yang telah terdaftar di pangkalan data.
+> Akun Dosen/TPA tidak menggunakan kata sandi (password). Keamanan login didasarkan pada kecocokan pasangan NIP dan Email unik yang telah terdaftar di pangkalan data.
 
 ---
 
@@ -99,7 +99,7 @@ Gunakan opsi ini untuk reservasi ruangan seharian penuh selama beberapa hari ber
    - <span style="color:#7c3aed">**Dibatalkan**</span>: Reservasi yang dibatalkan oleh admin (disertai alasan) atau dibatalkan secara mandiri oleh dosen sebelum waktu pelaksanaan dimulai.
    - <span style="color:#4b5563">**Selesai**</span>: Waktu reservasi telah berakhir.
 3. **Pembatalan Mandiri oleh User**: 
-   - Dosen/Pegawai dapat membatalkan reservasi aktif (berstatus **Pending** atau **Disetujui**) secara mandiri dengan mengeklik tombol **Batalkan** pada baris riwayat yang bersangkutan.
+   - Dosen/TPA dapat membatalkan reservasi aktif (berstatus **Pending** atau **Disetujui**) secara mandiri dengan mengeklik tombol **Batalkan** pada baris riwayat yang bersangkutan.
    - Pembatalan hanya bisa dilakukan sebelum waktu pelaksanaan peminjaman berakhir.
    - Khusus reservasi tipe sehari penuh (multi-day), membatalkan salah satu hari dalam rentang grup akan otomatis membatalkan seluruh hari lainnya dalam grup tersebut yang belum terlewati.
 4. **Format Tanggal**: Format penulisan tanggal di riwayat telah disesuaikan secara lokal dengan menyebutkan nama hari di depannya (Contoh: **Senin, 13 Jul 2026**).

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Pengguna (Dosen & Pegawai)')
+@section('title', 'Manajemen Pengguna (Dosen & TPA)')
 
 @section('content')
 <div class="space-y-6">
@@ -9,7 +9,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Manajemen Pengguna</h1>
-            <p class="text-gray-500 mt-1 text-sm">Kelola akun dosen dan pegawai yang dapat mengakses sistem reservasi.</p>
+            <p class="text-gray-500 mt-1 text-sm">Kelola akun dosen dan TPA yang dapat mengakses sistem reservasi.</p>
         </div>
         <button type="button" onclick="openCreateModal()"
             class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-3 rounded-xl transition cursor-pointer shrink-0">
@@ -83,7 +83,7 @@
                                     <div>
                                         <span class="font-semibold text-gray-800">{{ $user->name }}</span>
                                         <span class="ml-2 px-2 py-0.5 text-[10px] font-semibold rounded-full {{ $user->role === 'dosen' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-amber-50 text-amber-700 border border-amber-100' }}">
-                                            {{ ucfirst($user->role) }}
+                                            {{ $user->role === 'pegawai' ? 'TPA' : ucfirst($user->role) }}
                                         </span>
                                     </div>
                                 </div>
@@ -182,7 +182,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Role <span class="text-red-500">*</span></label>
                 <select name="role" required class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="dosen" {{ old('role') === 'dosen' ? 'selected' : '' }}>Dosen</option>
-                    <option value="pegawai" {{ old('role') === 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+                    <option value="pegawai" {{ old('role') === 'pegawai' ? 'selected' : '' }}>TPA</option>
                 </select>
                 @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
@@ -238,7 +238,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Role <span class="text-red-500">*</span></label>
                 <select name="role" id="edit-role" required class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="dosen">Dosen</option>
-                    <option value="pegawai">Pegawai</option>
+                    <option value="pegawai">TPA</option>
                 </select>
             </div>
             <div>

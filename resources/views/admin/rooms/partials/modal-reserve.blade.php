@@ -17,15 +17,15 @@
                 <div id="reserve-room-name" class="text-lg font-bold text-gray-800 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3"></div>
             </div>
 
-            <!-- User Pemesan (Lecturer / Pegawai / Admin) -->
+            <!-- User Pemesan (Lecturer / TPA / Admin) -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Dosen/Pegawai / Pemesan *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Dosen/TPA / Pemesan *</label>
                 <select name="user_id" required class="w-full rounded-xl border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     @foreach($users as $user)
-                        <option value="{{ $user->id }}" @selected($user->id === auth()->id())>{{ $user->name }} ({{ ucfirst($user->role) }})</option>
+                        <option value="{{ $user->id }}" @selected($user->id === auth()->id())>{{ $user->name }} ({{ $user->role === 'pegawai' ? 'TPA' : ucfirst($user->role) }})</option>
                     @endforeach
                 </select>
-                <p class="text-xs text-gray-400 mt-1">Pilih dosen/pegawai yang akan menggunakan ruangan tersebut.</p>
+                <p class="text-xs text-gray-400 mt-1">Pilih dosen/TPA yang akan menggunakan ruangan tersebut.</p>
             </div>
 
             <!-- Tipe Reservasi -->

@@ -7,7 +7,7 @@
     <!-- Header Section -->
     <div>
         <h1 class="text-3xl font-bold text-gray-800">Semua Data Reservasi</h1>
-        <p class="text-gray-500 mt-1">Lihat dan kelola seluruh riwayat reservasi ruangan oleh dosen/pegawai.</p>
+        <p class="text-gray-500 mt-1">Lihat dan kelola seluruh riwayat reservasi ruangan oleh dosen/TPA.</p>
     </div>
 
     <!-- Alert Success -->
@@ -148,7 +148,7 @@
                             </td>
                             <td class="py-4 px-6">
                                 <span class="font-medium text-gray-900">{{ $reservation->user->name ?? '-' }}</span>
-                                <span class="block text-xs text-gray-400">{{ $reservation->user->nip ? ucfirst($reservation->user->role) . ' (NIP: ' . $reservation->user->nip . ')' : 'Admin' }}</span>
+                                <span class="block text-xs text-gray-400">{{ $reservation->user->nip ? ($reservation->user->role === 'pegawai' ? 'TPA' : ucfirst($reservation->user->role)) . ' (NIP: ' . $reservation->user->nip . ')' : 'Admin' }}</span>
                             </td>
                             <td class="py-4 px-6 text-gray-500">
                                 {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB

@@ -12,7 +12,7 @@ Aplikasi **SIRAT** adalah platform berbasis web yang digunakan untuk mengelola d
 4. [Proses Persetujuan Pengajuan (Persetujuan & Penolakan)](#4-proses-persetujuan-pengajuan-persetujuan--penolakan)
 5. [Membatalkan Reservasi Aktif](#5-membatalkan-reservasi-aktif)
 6. [Kelola Data Ruangan (CRUD & Foto)](#6-kelola-data-ruangan-crud--foto)
-7. [Kelola Data Akun Dosen/Pegawai](#7-kelola-data-akun-dosenpegawai)
+7. [Kelola Data Akun Dosen/TPA](#7-kelola-data-akun-dosentpa)
 8. [Validasi Keamanan & Aturan Sistem](#8-validasi-keamanan--aturan-sistem)
 
 ---
@@ -86,9 +86,9 @@ Menu ini dapat diakses melalui **Kelola Ruangan** (`/admin/rooms`). Fitur-fitur 
 
 ---
 
-## 7. KELOLA DATA AKUN DOSEN/PEGAWAI
-Akses menu **Kelola Dosen** (`/admin/users`) untuk mengelola akses masuk bagi para dosen/pegawai:
-1. **Tambah User Baru**: Masukkan data lengkap berupa Role(Dosen/Pegawai), Nama Lengkap, Email aktif Telkom University, Nomor Induk Pegawai (NIP), dan Nomor Telepon.
+## 7. KELOLA DATA AKUN DOSEN/TPA
+Akses menu **Kelola Dosen** (`/admin/users`) untuk mengelola akses masuk bagi para dosen/TPA:
+1. **Tambah User Baru**: Masukkan data lengkap berupa Role(Dosen/TPA), Nama Lengkap, Email aktif Telkom University, Nomor Induk Pegawai (NIP), dan Nomor Telepon.
 2. **Edit Data User**: Memperbarui informasi dosen seperti perubahan nomor telepon atau perbaikan e-mail.
 3. **Hapus User**: Menghapus akun user dari database sistem.
 
