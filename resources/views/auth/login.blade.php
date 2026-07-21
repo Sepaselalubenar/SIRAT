@@ -8,20 +8,24 @@
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center p-4 md:p-8 relative font-sans select-none overflow-y-auto">
 
-    <!-- Top-Left Faculty Logo -->
-    <div class="absolute top-6 left-6 md:top-8 md:left-8 z-20">
-        <img src="{{ asset('logo-fte.png') }}" alt="Logo FTE" class="h-12 md:h-14 w-auto bg-white/95 py-2 px-4 rounded-xl shadow-md border border-gray-200/50">
-    </div>
+    <!-- Header: Logo & Guide Button -->
+    <div class="absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-8 flex justify-between items-center z-20 gap-4">
+        <!-- Faculty Logo -->
+        <div class="flex-shrink-0">
+            <img src="{{ asset('logo-fte.png') }}" alt="Logo FTE" class="h-9 sm:h-12 md:h-14 w-auto bg-white/95 py-1.5 px-2.5 sm:py-2 sm:px-4 rounded-xl shadow-md border border-gray-200/50">
+        </div>
 
-    <!-- Top-Right Guide Button -->
-    <div class="absolute top-6 right-6 md:top-8 md:right-8 z-20">
-        <button type="button" onclick="openGuideModal()" class="flex items-center gap-2 bg-white/95 hover:bg-white text-blue-700 font-bold py-2.5 px-4 rounded-xl shadow-md border border-gray-200/50 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer text-sm shadow-blue-700/5">
-            <!-- Book Open Icon -->
-            <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            Buku Panduan
-        </button>
+        <!-- Guide Button -->
+        <div class="flex-shrink-0">
+            <button type="button" onclick="openGuideModal()" class="flex items-center gap-1.5 sm:gap-2 bg-white/95 hover:bg-white text-blue-700 font-bold py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl shadow-md border border-gray-200/50 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer text-xs sm:text-sm shadow-blue-700/5">
+                <!-- Book Open Icon -->
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span class="hidden sm:inline">Buku Panduan</span>
+                <span class="sm:hidden">Panduan</span>
+            </button>
+        </div>
     </div>
 
     <!-- Fixed Background Image and Overlay -->

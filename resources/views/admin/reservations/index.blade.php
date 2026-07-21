@@ -212,7 +212,7 @@
                                 @elseif($reservation->status !== 'cancelled')
                                     <button
                                         type="button"
-                                        onclick="openCancelModal({{ $reservation->id }})"
+                                        onclick="openCancelModal({{ $reservation->id }}, '{{ $reservation->group_id }}', '{{ \Illuminate\Support\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}')"
                                         class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors duration-150 cursor-pointer"
                                     >
                                         Batalkan
@@ -246,6 +246,22 @@
         <form id="form-cancel" method="POST" class="p-6 space-y-4">
             @csrf
             <p class="text-sm text-gray-600">Pembatalan akan mengubah status reservasi menjadi <strong class="text-amber-700">Dibatalkan</strong> dan mengirim email notifikasi ke pengguna.</p>
+            
+            {{-- Cancel type selection for multi-day reservations --}}
+            <div id="cancel-type-container" class="hidden bg-amber-50/50 border border-amber-100 rounded-xl p-3.5 space-y-2">
+                <label class="block text-xs font-bold text-amber-800 uppercase tracking-wider">Pilihan Pembatalan</label>
+                <div class="space-y-2.5">
+                    <label class="flex items-center text-sm text-gray-700 cursor-pointer">
+                        <input type="radio" name="cancel_type" value="single" class="w-4 h-4 text-amber-600 border-gray-300 focus:ring-amber-500 mr-2.5">
+                        <span>Hanya untuk tanggal <strong id="cancel-single-date"></strong></span>
+                    </label>
+                    <label class="flex items-center text-sm text-gray-700 cursor-pointer">
+                        <input type="radio" name="cancel_type" value="all" class="w-4 h-4 text-amber-600 border-gray-300 focus:ring-amber-500 mr-2.5" checked>
+                        <span>Seluruh rangkaian reservasi multi-hari ini</span>
+                    </label>
+                </div>
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Alasan Pembatalan <span class="text-red-500">*</span></label>
                 <textarea
@@ -277,12 +293,25 @@
 </style>
 
 <script>
-    function openCancelModal(reservationId) {
+    function openCancelModal(reservationId, groupId, formattedDate) {
         const form = document.getElementById('form-cancel');
         form.action = `/admin/reservations/${reservationId}/cancel`;
 
         // Clear textarea on each open
         document.getElementById('cancel-alasan').value = '';
+
+        // Tampilkan/sembunyikan opsi pembatalan jika memiliki group_id
+        const container = document.getElementById('cancel-type-container');
+        const singleDateSpan = document.getElementById('cancel-single-date');
+        
+        if (groupId && groupId.trim() !== '') {
+            container.classList.remove('hidden');
+            singleDateSpan.textContent = formattedDate;
+            // Set default value to 'all'
+            form.querySelector('input[name="cancel_type"][value="all"]').checked = true;
+        } else {
+            container.classList.add('hidden');
+        }
 
         const modal = document.getElementById('modal-cancel');
         modal.classList.remove('hidden');

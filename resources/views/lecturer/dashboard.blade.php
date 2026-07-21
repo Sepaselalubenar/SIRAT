@@ -5,9 +5,9 @@
 <div class="space-y-8">
 
     <div>
-        <h1 class="text-3xl font-bold text-gray-800">
-            Dashboard Dosen
-        </h1>
+        <!-- <h1 class="text-3xl font-bold text-gray-800">
+            Dashboard
+        </h1> -->
 
         <p class="text-gray-500 mt-2">
             Selamat datang di Sistem Reservasi Area TULT
@@ -374,6 +374,9 @@
 
     // ====== Render Timeline ======
     function renderTimeline(roomsToShow, reservations) {
+        const todayDateStr = '{{ now()->toDateString() }}';
+        const isPast = currentDate < todayDateStr;
+        const isSunday = new Date(currentDate + 'T00:00:00').getDay() === 0;
         grid.innerHTML = '';
         spinner.classList.add('hidden');
 
@@ -448,7 +451,13 @@
             if (roomRes.length === 0) {
                 const available = document.createElement('div');
                 available.className = 'absolute inset-y-0 left-1 right-1 flex items-center px-3';
-                available.innerHTML = `<span class="text-xs text-green-600 font-semibold bg-green-50 rounded-lg px-3 py-1 border border-green-200">✓ Tersedia seharian</span>`;
+                if (isSunday) {
+                    available.innerHTML = `<span class="text-xs text-amber-700 font-semibold bg-amber-50 rounded-lg px-3 py-1 border border-amber-200">✗ Tutup (Hari Minggu)</span>`;
+                } else if (isPast) {
+                    available.innerHTML = `<span class="text-xs text-gray-500 font-semibold bg-gray-100 rounded-lg px-3 py-1 border border-gray-200">Reservasi ditutup</span>`;
+                } else {
+                    available.innerHTML = `<span class="text-xs text-green-600 font-semibold bg-green-50 rounded-lg px-3 py-1 border border-green-200">✓ Tersedia seharian</span>`;
+                }
                 trackWrapper.appendChild(available);
             }
 
@@ -460,6 +469,9 @@
 
     // ====== Render List / Agenda ======
     function renderList(roomsToShow, reservations) {
+        const todayDateStr = '{{ now()->toDateString() }}';
+        const isPast = currentDate < todayDateStr;
+        const isSunday = new Date(currentDate + 'T00:00:00').getDay() === 0;
         listContainer.innerHTML = '';
         spinner.classList.add('hidden');
 
@@ -479,6 +491,15 @@
             // If the room is completely available, make it compact
             if (roomRes.length === 0) {
                 roomCard.className = 'p-4 flex items-center justify-between gap-4 hover:bg-gray-50/50 transition-colors';
+                let badge;
+                if (isSunday) {
+                    badge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-lg border border-amber-200 shrink-0">✗ Tutup (Hari Minggu)</span>`;
+                } else if (isPast) {
+                    badge = `<span class="px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-lg border border-gray-200 shrink-0">Reservasi ditutup</span>`;
+                } else {
+                    badge = `<span class="px-2.5 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-lg border border-green-200 shrink-0">✓ Tersedia seharian</span>`;
+                }
+                
                 roomCard.innerHTML = `
                     <div>
                         <div class="font-bold text-gray-800 text-sm leading-tight">${room.nama}</div>
@@ -489,9 +510,7 @@
                             Lantai ${room.lantai}
                         </div>
                     </div>
-                    <span class="px-2.5 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-lg border border-green-200 shrink-0">
-                        ✓ Tersedia seharian
-                    </span>
+                    ${badge}
                 `;
             } else {
                 // Room has bookings

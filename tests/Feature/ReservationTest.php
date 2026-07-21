@@ -122,6 +122,9 @@ class ReservationTest extends TestCase
 
         $response1->assertRedirect('/history');
 
+        // Approve reservation 1 so it blocks the room
+        Reservation::first()->update(['status' => 'approved']);
+
         // 4. Make reservation 2 at overlapping time in the same room (must fail validation)
         $response2 = $this->actingAs($dosen)->post('/reservation/store', [
             'room_id' => $room->id,
@@ -157,7 +160,11 @@ class ReservationTest extends TestCase
         ]);
 
         // Floor 19 requires reservation starting at H+2
-        $tanggal = Carbon::now()->addDays(2)->toDateString();
+        $tanggal = Carbon::now()->addDays(2);
+        if ($tanggal->isSunday()) {
+            $tanggal->addDay();
+        }
+        $tanggal = $tanggal->toDateString();
 
         // 3. Make reservation with a custom text tujuan, and verify it successfully works,
         // and that any provided keterangan is saved successfully
@@ -478,7 +485,7 @@ class ReservationTest extends TestCase
                 'tanggal' => $d->toDateString(),
                 'jam_mulai' => '07:00',
                 'jam_selesai' => '18:30',
-                'status' => 'approved',
+                'status' => 'pending',
             ]);
         }
     }
@@ -655,7 +662,11 @@ class ReservationTest extends TestCase
             'status' => 'tersedia',
         ]);
 
-        $tanggal = Carbon::now()->addDays(2)->toDateString();
+        $tanggal = Carbon::now()->addDays(2);
+        if ($tanggal->isSunday()) {
+            $tanggal->addDay();
+        }
+        $tanggal = $tanggal->toDateString();
 
         // Create a pending reservation
         Reservation::create([
@@ -732,7 +743,7 @@ class ReservationTest extends TestCase
             'tanggal' => $tanggal,
             'jam_mulai' => '10:00',
             'jam_selesai' => '12:00',
-            'status' => 'approved',
+            'status' => 'pending',
         ]);
     }
 
@@ -960,7 +971,7 @@ class ReservationTest extends TestCase
             'tanggal' => '2026-07-15',
             'jam_mulai' => '10:30',
             'jam_selesai' => '18:30',
-            'status' => 'approved',
+            'status' => 'pending',
         ]);
 
         // Clean up test now
@@ -1055,7 +1066,10 @@ class ReservationTest extends TestCase
         ]);
 
         // Make sure we are at least H+2 for floor 19
-        $start = Carbon::today()->addDays(5)->startOfWeek(); // next monday or later
+        $start = Carbon::today()->addDays(2);
+        if ($start->dayOfWeek !== Carbon::MONDAY) {
+            $start->next(Carbon::MONDAY);
+        }
         $end = $start->copy()->addDays(2);
 
         $response = $this->actingAs($dosen)->post('/reservation/store', [
@@ -1109,7 +1123,10 @@ class ReservationTest extends TestCase
             'status' => 'tersedia',
         ]);
 
-        $start = Carbon::today()->addDays(5)->startOfWeek();
+        $start = Carbon::today()->addDays(2);
+        if ($start->dayOfWeek !== Carbon::MONDAY) {
+            $start->next(Carbon::MONDAY);
+        }
         $end = $start->copy()->addDays(2); // Mon, Tue, Wed
 
         // Lecturer 1 books multi-day (pending)
@@ -1178,6 +1195,104 @@ class ReservationTest extends TestCase
         // All should be cancelled
         $cancelledCount = Reservation::where('status', 'cancelled')->count();
         $this->assertEquals(3, $cancelledCount);
+    }
+
+    public function test_admin_can_cancel_single_day_of_grouped_reservation()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $admin = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@test.com',
+            'role' => 'admin',
+            'admin_type' => 1,
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $start = Carbon::today()->addDays(5)->startOfWeek();
+        $end = $start->copy()->addDays(2);
+
+        $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => $start->toDateString(),
+            'tanggal_selesai' => $end->toDateString(),
+            'tujuan' => 'Rapat Runtutan',
+            'keterangan' => 'Rapat penting',
+        ]);
+
+        $first = Reservation::first();
+        Reservation::query()->update(['status' => 'approved']);
+
+        $cancelResponse = $this->actingAs($admin)->post("/admin/reservations/{$first->id}/cancel", [
+            'alasan_pembatalan' => 'Hanya membatalkan hari pertama',
+            'cancel_type' => 'single',
+        ]);
+        $cancelResponse->assertRedirect();
+
+        // Only the first should be cancelled, other 2 should remain approved
+        $this->assertEquals('cancelled', $first->fresh()->status);
+        $this->assertEquals(2, Reservation::where('status', 'approved')->count());
+    }
+
+    public function test_admin_can_cancel_all_days_of_grouped_reservation()
+    {
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        $admin = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@test.com',
+            'role' => 'admin',
+            'admin_type' => 1,
+        ]);
+
+        $room = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $start = Carbon::today()->addDays(5)->startOfWeek();
+        $end = $start->copy()->addDays(2);
+
+        $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $room->id,
+            'tipe_reservasi' => 'sehari_penuh',
+            'tanggal_mulai' => $start->toDateString(),
+            'tanggal_selesai' => $end->toDateString(),
+            'tujuan' => 'Rapat Runtutan',
+            'keterangan' => 'Rapat penting',
+        ]);
+
+        $first = Reservation::first();
+        $cancelResponse = $this->actingAs($admin)->post("/admin/reservations/{$first->id}/cancel", [
+            'alasan_pembatalan' => 'Batalkan seluruhnya',
+            'cancel_type' => 'all',
+        ]);
+        $cancelResponse->assertRedirect();
+
+        // All 3 should be cancelled
+        $this->assertEquals(3, Reservation::where('status', 'cancelled')->count());
+        $this->assertEquals(0, Reservation::where('status', 'pending')->count());
     }
 }
 

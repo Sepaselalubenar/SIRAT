@@ -53,7 +53,7 @@ class ReservationController extends Controller
 
         $user = Auth::user();
         $room = Room::findOrFail($data['room_id']);
-        $butuhApproval = (string) $room->lantai === self::LANTAI_APPROVAL;
+        $butuhApproval = true;
         $dates = [];
         if ($tipeReservasi === 'sehari_penuh') {
             $startDate = Carbon::parse($data['tanggal_mulai']);
@@ -128,7 +128,7 @@ class ReservationController extends Controller
             }
 
             // Pastikan minimal H+2 untuk lantai approval
-            if ($butuhApproval) {
+            if ((string) $room->lantai === self::LANTAI_APPROVAL) {
                 $this->pastikanMinimalHPlus2($date);
             }
 
@@ -238,10 +238,7 @@ class ReservationController extends Controller
      */
     private function pastikanRuanganKosong(Room $room, string $tanggal, Carbon $jamMulai, Carbon $jamSelesai): void
     {
-        $statuses = ['pending', 'approved'];
-        if ((string) $room->lantai === self::LANTAI_APPROVAL) {
-            $statuses = ['approved'];
-        }
+        $statuses = ['approved'];
 
         $bentrok = Reservation::where('room_id', $room->id)
             ->where('tanggal', $tanggal)

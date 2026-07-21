@@ -284,10 +284,7 @@ class RoomManagementController extends Controller
             }
 
             // Overlap check
-            $statuses = ['pending', 'approved'];
-            if ((string) $room->lantai === '19') {
-                $statuses = ['approved'];
-            }
+            $statuses = ['approved'];
 
             $overlap = \App\Models\Reservation::where('room_id', $roomId)
                 ->where('tanggal', $date)

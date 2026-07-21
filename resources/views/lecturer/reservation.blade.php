@@ -40,7 +40,7 @@
                     @foreach($roomsInLantai as $room)
                         @php
                             $photoUrls = $room->photos->pluck('url')->values();
-                            $butuhApproval = (string) $room->lantai === $lantaiApproval;
+                            $butuhApproval = true;
                             $statusLabel = match($room->status) {
                                 'tersedia' => 'Tersedia',
                                 'dipakai' => 'Dipakai',

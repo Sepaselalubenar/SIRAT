@@ -15,15 +15,7 @@ class RoomController extends Controller
     public function index()
     {
         $rooms = Room::with(['photos', 'reservations' => function ($query) {
-            $query->where(function ($q) {
-                $q->where('status', 'approved')
-                  ->orWhere(function ($sub) {
-                      $sub->where('status', 'pending')
-                          ->whereHas('room', function ($rQuery) {
-                              $rQuery->where('lantai', '!=', self::LANTAI_APPROVAL);
-                          });
-                  });
-            })
+            $query->where('status', 'approved')
                 ->whereDate('tanggal', '>=', now()->toDateString())
                 ->select('id', 'room_id', 'tanggal', 'jam_mulai', 'jam_selesai');
         }])

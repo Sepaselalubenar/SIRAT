@@ -76,6 +76,7 @@ class ReservationManagementController extends Controller
     {
         $request->validate([
             'alasan_pembatalan' => 'required|string|max:500',
+            'cancel_type' => 'nullable|in:single,all',
         ]);
 
         $reservation = Reservation::findOrFail($id);
@@ -84,7 +85,9 @@ class ReservationManagementController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk membatalkan reservasi ini.');
         }
 
-        $reservationsToCancel = $reservation->group_id
+        $cancelType = $request->input('cancel_type', 'all');
+
+        $reservationsToCancel = ($reservation->group_id && $cancelType === 'all')
             ? Reservation::where('group_id', $reservation->group_id)->whereIn('status', ['pending', 'approved'])->get()
             : collect([$reservation]);
 
@@ -98,7 +101,7 @@ class ReservationManagementController extends Controller
 
         // Kirim email notifikasi ke dosen
         try {
-            if ($reservation->group_id) {
+            if ($reservation->group_id && $cancelType === 'all') {
                 $reservationsToCancel->load(['room', 'user']);
                 Mail::to($reservation->user->email)->send(new MultiDayReservationStatusMail($reservationsToCancel, 'cancelled'));
             } else {

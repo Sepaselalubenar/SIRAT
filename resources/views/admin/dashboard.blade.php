@@ -83,7 +83,7 @@
                         &middot; <span class="text-xs text-gray-400">Diajukan: {{ $reservation->created_at->translatedFormat('d M Y H:i') }} WIB</span>
                     </p>
                     @if($reservation->keterangan)
-                        <p class="text-xs text-gray-400 mt-1 italic">Catatan: "{{ $reservation->keterangan }}"</p>
+                        <p class="text-sm text-gray-600 mt-1.5 font-medium italic"><span class="font-semibold not-italic text-gray-700">Catatan:</span> "{{ $reservation->keterangan }}"</p>
                     @endif
                 </div>
 
