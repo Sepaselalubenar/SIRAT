@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Mail\ReservationSuccessMail;
 use App\Mail\MultiDayReservationSuccessMail;
+use App\Mail\AdminReservationRequestMail;
+use App\Mail\AdminMultiDayReservationRequestMail;
 use App\Models\Reservation;
 use App\Models\Room;
 use Illuminate\Http\Request;
@@ -185,6 +187,27 @@ class ReservationController extends Controller
             }
         } catch (\Throwable $e) {
             logger()->error('Gagal mengirim email notifikasi reservasi: ' . $e->getMessage());
+        }
+
+        // Kirim email notifikasi ke admin yang mengelola ruangan tersebut
+        try {
+            $targetAdminType = ((string) $room->lantai === '19') ? 2 : 1;
+            $admins = \App\Models\User::where('role', 'admin')
+                ->where('admin_type', $targetAdminType)
+                ->get();
+
+            foreach ($admins as $admin) {
+                if ($tipeReservasi === 'sehari_penuh') {
+                    $reservationsCol = collect($reservations)->each->load(['room', 'user']);
+                    Mail::to($admin->email)->send(new AdminMultiDayReservationRequestMail($reservationsCol));
+                } else {
+                    $res = $reservations[0];
+                    $res->load(['room', 'user']);
+                    Mail::to($admin->email)->send(new AdminReservationRequestMail($res));
+                }
+            }
+        } catch (\Throwable $e) {
+            logger()->error('Gagal mengirim email notifikasi reservasi ke admin: ' . $e->getMessage());
         }
 
         return redirect('/history')

@@ -1294,5 +1294,93 @@ class ReservationTest extends TestCase
         $this->assertEquals(3, Reservation::where('status', 'cancelled')->count());
         $this->assertEquals(0, Reservation::where('status', 'pending')->count());
     }
+
+    public function test_reservation_notifies_correct_admin_based_on_floor()
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        // Create Admin 1 (manages floor 3)
+        $admin1 = User::create([
+            'name' => 'Admin One',
+            'email' => 'admin1@test.com',
+            'role' => 'admin',
+            'admin_type' => 1,
+        ]);
+
+        // Create Admin 2 (manages floor 19)
+        $admin2 = User::create([
+            'name' => 'Admin Two',
+            'email' => 'admin2@test.com',
+            'role' => 'admin',
+            'admin_type' => 2,
+        ]);
+
+        // Create a lecturer user
+        $dosen = User::create([
+            'name' => 'Dosen Test',
+            'email' => 'dosen@test.com',
+            'role' => 'dosen',
+            'nip' => '12345678',
+        ]);
+
+        // Create room on Floor 3
+        $roomL3 = Room::create([
+            'nama' => 'Ruang L3',
+            'jenis' => 'Ruang Sidang',
+            'lantai' => '3',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        // Create room on Floor 19
+        $roomL19 = Room::create([
+            'nama' => 'Ruang L19',
+            'jenis' => 'Ruang Rapat',
+            'lantai' => '19',
+            'kapasitas' => 20,
+            'status' => 'tersedia',
+        ]);
+
+        $tanggal = Carbon::tomorrow()->addDays(2)->toDateString(); // addDays(2) to satisfy H+2 rule for floor 19
+
+        // 1. Reserve floor 3 room -> Admin 1 should receive the notification, Admin 2 should not
+        $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $roomL3->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat L3',
+            'keterangan' => 'Keterangan L3',
+        ]);
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\AdminReservationRequestMail::class, function ($mail) use ($admin1) {
+            return $mail->hasTo($admin1->email);
+        });
+
+        \Illuminate\Support\Facades\Mail::assertNotSent(\App\Mail\AdminReservationRequestMail::class, function ($mail) use ($admin2) {
+            return $mail->hasTo($admin2->email);
+        });
+
+        // Reset Mail Fake
+        \Illuminate\Support\Facades\Mail::fake();
+
+        // 2. Reserve floor 19 room -> Admin 2 should receive the notification, Admin 1 should not
+        $this->actingAs($dosen)->post('/reservation/store', [
+            'room_id' => $roomL19->id,
+            'tanggal' => $tanggal,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'tujuan' => 'Rapat L19',
+            'keterangan' => 'Keterangan L19',
+        ]);
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\AdminReservationRequestMail::class, function ($mail) use ($admin2) {
+            return $mail->hasTo($admin2->email);
+        });
+
+        \Illuminate\Support\Facades\Mail::assertNotSent(\App\Mail\AdminReservationRequestMail::class, function ($mail) use ($admin1) {
+            return $mail->hasTo($admin1->email);
+        });
+    }
 }
 

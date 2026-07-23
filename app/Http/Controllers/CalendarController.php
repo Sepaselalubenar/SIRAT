@@ -36,7 +36,23 @@ class CalendarController extends Controller
 
         $query = Reservation::with(['room', 'user'])
             ->where('tanggal', $date)
-            ->whereIn('status', ['approved', 'pending']);
+            ->where(function($q) {
+                $q->where('status', 'approved')
+                  ->orWhere(function($sub) {
+                      $sub->where('status', 'pending');
+                      if (auth()->check()) {
+                          if (auth()->user()->isAdmin()) {
+                              // Admins see all pending
+                          } else {
+                              // Regular users only see their own pending
+                              $sub->where('user_id', auth()->id());
+                          }
+                      } else {
+                          // Guests see no pending
+                          $sub->whereRaw('1 = 0');
+                      }
+                  });
+            });
 
         if ($roomId && $roomId !== 'all') {
             $query->where('room_id', $roomId);
@@ -55,18 +71,27 @@ class CalendarController extends Controller
         $reservations = $query->orderBy('jam_mulai')->get();
 
         return response()->json($reservations->map(function ($r) {
+            try {
+                $tgl = Carbon::parse($r->tanggal)->format('Y-m-d');
+                $jam = substr($r->jam_selesai, 0, 5);
+                $isPast = Carbon::parse("{$tgl} {$jam}")->isPast();
+            } catch (\Throwable $e) {
+                $isPast = false;
+            }
+
             return [
                 'id'          => $r->id,
                 'room_id'     => $r->room_id,
                 'room_name'   => $r->room?->nama ?? '-',
                 'room_lantai' => $r->room?->lantai ?? '-',
                 'user_name'   => $r->user?->name ?? '-',
-                'tanggal'     => $r->tanggal,
+                'tanggal'     => is_string($r->tanggal) ? $r->tanggal : Carbon::parse($r->tanggal)->format('Y-m-d'),
                 'jam_mulai'   => substr($r->jam_mulai, 0, 5),
                 'jam_selesai' => substr($r->jam_selesai, 0, 5),
                 'tujuan'      => $r->tujuan,
                 'keterangan'  => $r->keterangan,
                 'status'      => $r->status,
+                'is_past'     => $isPast,
             ];
         }));
     }

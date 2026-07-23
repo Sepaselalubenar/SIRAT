@@ -183,6 +183,10 @@
                     <span class="text-gray-600">Disetujui</span>
                 </div>
                 <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-gray-400 inline-block"></span>
+                    <span class="text-gray-600">Selesai</span>
+                </div>
+                <div class="flex items-center gap-1.5">
                     <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span>
                     <span class="text-gray-600">Menunggu Persetujuan</span>
                 </div>
@@ -372,6 +376,12 @@
         }
     }
 
+    function isResPast(res) {
+        if (res.is_past !== undefined) return res.is_past;
+        const jamSelesai = res.jam_selesai.length === 5 ? res.jam_selesai + ':00' : res.jam_selesai;
+        return new Date(res.tanggal + 'T' + jamSelesai) < new Date();
+    }
+
     // ====== Render Timeline ======
     function renderTimeline(roomsToShow, reservations) {
         const todayDateStr = '{{ now()->toDateString() }}';
@@ -405,21 +415,47 @@
 
         roomsToShow.forEach(room => {
             const row = document.createElement('div');
-            row.className = 'flex border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors';
+            row.className = 'flex border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors items-center';
 
             const roomLabel = document.createElement('div');
-            roomLabel.className = 'w-44 shrink-0 p-4 border-r border-gray-100';
+            roomLabel.className = 'w-44 shrink-0 p-4 border-r border-gray-100 self-stretch flex flex-col justify-center';
             roomLabel.innerHTML = `
                 <div class="font-semibold text-gray-800 text-sm leading-tight">${room.nama}</div>
                 <div class="text-xs text-gray-400 mt-0.5">Lantai ${room.lantai}</div>
             `;
 
+            // Sort reservations by start time
+            const roomRes = [...(resMap[room.id] || [])].sort((a, b) => a.jam_mulai.localeCompare(b.jam_mulai));
+
+            // Distribute reservations into tracks
+            const tracks = [];
+            roomRes.forEach(res => {
+                let placed = false;
+                for (let i = 0; i < tracks.length; i++) {
+                    const lastRes = tracks[i][tracks[i].length - 1];
+                    if (res.jam_mulai >= lastRes.jam_selesai) {
+                        tracks[i].push(res);
+                        placed = true;
+                        res._trackIndex = i;
+                        break;
+                    }
+                }
+                if (!placed) {
+                    tracks.push([res]);
+                    res._trackIndex = tracks.length - 1;
+                }
+            });
+
+            const totalTracks = Math.max(tracks.length, 1);
+            const TRACK_HEIGHT = 38;
+
             const trackWrapper = document.createElement('div');
-            trackWrapper.className = 'flex-1 relative py-3 px-1';
+            trackWrapper.className = 'flex-1 relative px-1';
+            trackWrapper.style.height = `${totalTracks * TRACK_HEIGHT + 8}px`;
 
             // Background grid lines per hour
             const bgGrid = document.createElement('div');
-            bgGrid.className = 'absolute inset-y-0 left-1 right-1 flex pointer-events-none';
+            bgGrid.className = 'absolute inset-0 flex pointer-events-none';
             for (let i = 0; i <= TOTAL_HOURS; i++) {
                 const line = document.createElement('div');
                 line.className = 'flex-1 border-r border-gray-100 last:border-r-0';
@@ -428,17 +464,19 @@
             trackWrapper.appendChild(bgGrid);
 
             // Reservation blocks
-            const roomRes = resMap[room.id] || [];
             roomRes.forEach(res => {
                 const left = timeToPercent(res.jam_mulai);
                 const width = durationPercent(res.jam_mulai, res.jam_selesai);
                 const isApproved = res.status === 'approved';
+                const isPastRes = isResPast(res);
                 const colorClass = isApproved
-                    ? 'bg-blue-500 hover:bg-blue-600'
+                    ? (isPastRes ? 'bg-gray-400 hover:bg-gray-500' : 'bg-blue-500 hover:bg-blue-600')
                     : 'bg-yellow-400 hover:bg-yellow-500';
 
                 const block = document.createElement('button');
-                block.className = `absolute top-1.5 bottom-1.5 ${colorClass} rounded-lg text-white text-xs font-semibold flex items-center px-2 overflow-hidden transition-all shadow-sm cursor-pointer`;
+                block.className = `absolute ${colorClass} rounded-lg text-white text-xs font-semibold flex items-center px-2 overflow-hidden transition-all shadow-sm cursor-pointer`;
+                block.style.top = `${res._trackIndex * TRACK_HEIGHT + 4}px`;
+                block.style.height = `${TRACK_HEIGHT - 6}px`;
                 block.style.left  = `${left}%`;
                 block.style.width = `${Math.max(width, 2)}%`;
                 block.innerHTML   = `<span class="truncate">${res.jam_mulai}-${res.jam_selesai}</span>`;
@@ -544,10 +582,15 @@
 
                 sortedRes.forEach(res => {
                     const isApproved = res.status === 'approved';
-                    const dotColor = isApproved ? 'bg-blue-500' : 'bg-yellow-400';
-                    const bgClass = isApproved ? 'bg-blue-50/40 hover:bg-blue-50/80 border-blue-200' : 'bg-yellow-50/40 hover:bg-yellow-50/80 border-yellow-200';
-                    const badgeColor = isApproved ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200';
-                    const badgeText = isApproved ? 'Disetujui' : 'Menunggu';
+                    const isPastRes = isResPast(res);
+                    const dotColor = isApproved ? (isPastRes ? 'bg-gray-400' : 'bg-blue-500') : 'bg-yellow-400';
+                    const bgClass = isApproved
+                        ? (isPastRes ? 'bg-gray-50/60 hover:bg-gray-100/80 border-gray-200' : 'bg-blue-50/40 hover:bg-blue-50/80 border-blue-200')
+                        : 'bg-yellow-50/40 hover:bg-yellow-50/80 border-yellow-200';
+                    const badgeColor = isApproved
+                        ? (isPastRes ? 'bg-gray-100 text-gray-600 border-gray-200' : 'bg-blue-100 text-blue-700 border-blue-200')
+                        : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                    const badgeText = isApproved ? (isPastRes ? 'Selesai' : 'Disetujui') : 'Menunggu';
 
                     const block = document.createElement('div');
                     block.className = `flex flex-col gap-2 p-3 border rounded-xl shadow-sm transition cursor-pointer ${bgClass}`;
@@ -603,8 +646,14 @@
 
     // ====== Detail Modal ======
     function openDetailModal(res) {
+        const isPastRes = res.is_past !== undefined
+            ? res.is_past
+            : (new Date(res.tanggal + 'T' + (res.jam_selesai.length === 5 ? res.jam_selesai + ':00' : res.jam_selesai)) < new Date());
+
         const statusLabel = res.status === 'approved'
-            ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Disetujui</span>'
+            ? (isPastRes
+                ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">Selesai</span>'
+                : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Disetujui</span>')
             : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200">Menunggu Persetujuan</span>';
 
         document.getElementById('detail-content').innerHTML = `
